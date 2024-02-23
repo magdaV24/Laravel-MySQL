@@ -50,14 +50,8 @@ class AccountController extends Controller
         if (!$user) {
             return back()->with('error', 'User not found.');
         }
-        $request->validate([
-            'name' => ['nullable', 'string', 'max:100'],
-            'email' => ['nullable', 'string', 'email', 'max:100', Rule::unique('users')->ignore($user->id)],
-            'password' => ['nullable', 'string', 'min:8'],
-            'avatar' => ['nullable', 'file', 'image', 'max:2048'],
-        ]);
         if (Hash::check($request['old_password'], $user->password)) {
-            if ($request['password'] !== '' && $request['password'] === $request['confirm_new_password']) {
+            if ($request['password'] !== null && $request['password'] === $request['confirm_new_password']) {
                 $user->password = Hash::make($request->input('password'));
             }
             if (isset($request['avatar'])) {
@@ -74,16 +68,26 @@ class AccountController extends Controller
                 $publicId = $uploadResult->getPublicId();
                 $user->avatar = $publicId;
             }
-            // if ($request['name']) {
-            //     $user->name = $request['name'];
-            // }
-            // if ($request['email']) {
-            //     $user->email = $request['email'];
-            // }
-            $user->update($user);
+            if ($request['name'] !== null) {
+                $user->name = $request['name'];
+            }
+            if ($request['email'] !== null) {
+                $user->email = $request['email'];
+            }
+            $user->save();
             return back()->with("success", "Profile updated successfully!");
         } else {
             return back()->with("error", "Wrong password.");
+        }
+    }
+
+    public function delete()
+    {
+        try {
+            $user = User::findOrFail(auth()->user()->id);
+            $user->delete();
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return redirect()->back()->with('error', 'User not found.');
         }
     }
 }

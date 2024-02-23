@@ -20,6 +20,7 @@ Route::prefix('/account')->group(function () {
     Route::get('/{user}', [App\Http\Controllers\AccountController::class, 'index'])->name('account.home');
     Route::get('/{user}/edit', [App\Http\Controllers\AccountController::class, 'edit'])->name('account.edit');
     Route::patch('/{user}/update', [App\Http\Controllers\AccountController::class, 'update'])->name('account.update');
+    Route::delete('/{user}/delete', [App\Http\Controllers\AccountController::class, 'delete'])->name('account.delete');
 });
 
 
