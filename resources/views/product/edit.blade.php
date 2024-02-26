@@ -1,21 +1,4 @@
-@extends('layouts.app', ['favoritesCount' =>$favoritesCount, 'cartCount'=>$cartCount])
-
-@section('content')
-@auth
-@if(auth()->user()->role === 'admin')
-<div class="container">
-<div class="card p-1 d-flex justify-content-center p-2">
-    <div class="card-header">{{ __('Edit Product') }}</div>
-    @if ($errors->any())
-    <div class="alert alert-danger">
-        <ul>
-            @foreach ($errors->all() as $error)
-            <li>{{ $error }}</li>
-            @endforeach
-        </ul>
-    </div>
-    @endif
-    <form method="POST" class='p-2' action="{{ route('product.update', ['product'=>$product, 'uuid'=>$product->uuid]) }}"
+<form method="POST" class='p-2' action="{{ route('product.update', ['product'=>$product, 'uuid'=>$product->uuid]) }}"
         enctype="multipart/form-data">
         @csrf
         @method('PATCH')
@@ -43,23 +26,12 @@
                 <input class="form-control" type="file" id="photos" name="photos[]" multiple>
             </div>
         </div>
-        <div class='d-flex flex-row gap-1 align-items-center justify-content-center' style="width: 100%; margin-top: 10px; margin-bottom: 10px; margin-left: 20px">
-        @foreach($photos as $photo)
-            @include('photo.delete', ['public_id'=>$photo])
-        @endforeach
-        </div>
+
         <div class="row mb-0">
             <div class="col-md-6 offset-md-4 d-flex gap-2">
                 <button type="submit" class="btn btn-primary">
                     {{ __('Edit Product') }}
                 </button>
-                @include('product.delete', ['product'=>$product])
             </div>
         </div>
     </form>
-</div>
-</div>
-@endif
-@endauth
-
-@endsection

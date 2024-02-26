@@ -38,7 +38,7 @@ Route::prefix('/product')->group(function () {
 
 Route::prefix('/photo')->group(function () {
     Route::get('/show', [App\Http\Controllers\PhotoController::class, 'show'])->name('photo.show');
-    Route::get('/{photo}/delete', [App\Http\Controllers\PhotoController::class, 'delete'])->name('photo.delete');
+    Route::delete('/{photo}/delete', [App\Http\Controllers\PhotoController::class, 'delete'])->name('photo.delete');
 });
 
 // Managing the addresses;

@@ -1,8 +1,8 @@
 <div>
     <h1>All Products</h1>
-    <div class=' d-flex gap-1'>
+    <div class='row row-cols-1 row-cols-md-2 row-cols-lg-4 g-2'>
         @foreach ($products as $product)
-        <div class="card" style="width: 20rem" href="#">
+        <div class="card h-100" style="width: 20rem; margin-right: 0.5rem">
             <div class="card-header d-flex justify-content-end align-items-center">
                 @if ($product->favorite)
                 <form action="{{ route('favorites.remove', ['product_id' => $product->id]) }}" method="POST">

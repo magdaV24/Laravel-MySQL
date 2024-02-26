@@ -73,8 +73,10 @@ class ProductsController extends Controller
             $grade += $review->grade;
         }
         $count === 0 ? $product->grade = 0 : $product->grade = $grade / $count;
-        $product->favorite = (new FavoritesController)->isInWishlist($product->id);
-        $product->cart = (new CartController())->isInCart($product->id);
+        $product->favorite = (new FavoritesController)->isInWishlist($product->id); /*checks if the product is in the wishlist;
+        based on whether or not the product is in the wishlist, the user will get option to remove/add the product from/to the wishlist
+        */
+        $product->cart = (new CartController())->isInCart($product->id); /*checks if the product is in the cart;*/
         return view('product.index', [
             'user' => $user,
             'product' => $product,
@@ -92,7 +94,7 @@ class ProductsController extends Controller
         $photos = Photo::where('uuid', $product->uuid)->pluck('url');
         $favoritesCount = (new FavoritesController())->count();
         $cartCount = (new CartController())->count();
-        return view('product.edit', [
+        return view('product.update', [
             'product' => $product,
             'user' => $user,
             'photos' => $photos,
