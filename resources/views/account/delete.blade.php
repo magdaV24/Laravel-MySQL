@@ -9,5 +9,5 @@
                 name="password" required>
         </div>
     </div>
-    <button type="submit" class="btn btn-danger review-delete" style="display: block">Delete Account</button>
+    <button type="submit" class="btn btn-danger review-delete offset-md-4" style="display: block">Delete Account</button>
 </form>

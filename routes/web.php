@@ -92,3 +92,7 @@ Route::prefix('/comments')->group(function () {
     Route::patch('/update/{comment}', [App\Http\Controllers\CommentsController::class, 'update'])->name('comment.update');
     Route::delete('/delete/{comment}', [App\Http\Controllers\CommentsController::class, 'delete'])->name('comment.delete');
 });
+
+// Managing the errors
+
+// Route::get('/error',)

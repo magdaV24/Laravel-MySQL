@@ -57,7 +57,6 @@ class OrdersController extends Controller
             $order->products = (new OrdersController)->getProducts($order->id);
             $order->address = Address::where("id", $order->address_id)->first();
         }
-        // dd($orders);
         return view("orders.show", [
             "orders" => $orders,
             "favoritesCount" => $favoritesCount,

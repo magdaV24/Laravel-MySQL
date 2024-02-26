@@ -22,12 +22,12 @@
         <div class="row mb-3">
             <label for="street" class="col-md-4 col-form-label text-md-end">Street</label>
             <div class="col-md-6"> <input type="text" class="form-control @error('street') is-invalid @enderror"
-                    name="street" id="street" placeholder="Downtown Blvd"></div>
+                    name="street" id="street" placeholder="Broadway"></div>
         </div>
         <div class="row mb-3">
             <label for="number" class="col-md-4 col-form-label text-md-end">Number</label>
             <div class="col-md-6"><input type="number" class="form-control @error('number') is-invalid @enderror"
-                    name="number" id="number" placeholder="4">
+                    name="number" id="number" placeholder="726">
             </div>
         </div>
         <div class="row mb-3">
