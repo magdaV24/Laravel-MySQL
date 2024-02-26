@@ -1,13 +1,14 @@
 <div class="card p-1 container mt-4">
     <div class="card-header">{{ __('Reply') }}</div>
 
-    @if ($errors->any())
+    @if(session('error'))
     <div class="alert alert-danger">
-        <ul>
-            @foreach ($errors->all() as $error)
-            <li>{{ $error }}</li>
-            @endforeach
-        </ul>
+        {{ session('error') }}
+    </div>
+    @endif
+    @if(session('success'))
+    <div class="alert alert-success">
+        {{ session('success') }}
     </div>
     @endif
     <form method="POST" class='p-2'

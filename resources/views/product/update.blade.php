@@ -1,5 +1,7 @@
 @extends('layouts.app', ['favoritesCount' =>$favoritesCount, 'cartCount'=>$cartCount])
 
+
+
 @section('content')
 @auth
 @if(auth()->user()->role === 'admin')

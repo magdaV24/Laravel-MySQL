@@ -9,8 +9,8 @@
         </div>
         <div class="d-flex gap-2">
             @if($comment->user_id === auth()->user()->id)
-            <div class="btn btn-outline-info " id="edit-comment-toggle-{{$comment->id}}"
-                style="display: block"><i class="bi bi-pen"></i></div>
+            <div class="btn btn-outline-info " id="edit-comment-toggle-{{$comment->id}}" style="display: block"><i
+                    class="bi bi-pen"></i></div>
             @include('comment.delete', ['comment'=> $comment])
             @endif
         </div>
@@ -25,22 +25,22 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-    const editCommentToggle = document.querySelectorAll('#edit-comment-toggle-{{$comment->id}}');
+        const editCommentToggle = document.querySelectorAll('#edit-comment-toggle-{{$comment->id}}');
 
-    editCommentToggle.forEach(function (toggle) {
-        toggle.addEventListener('click', function () {
+        editCommentToggle.forEach(function (toggle) {
+            toggle.addEventListener('click', function () {
 
-            // Select the comment content and edit form using the comment ID
-            const commentContent = document.querySelector('#comment-content-{{$comment->id}}');
-            const editCommentForm = document.querySelector('#edit-comment-form-{{$comment->id}}');
+                // Select the comment content and edit form using the comment ID
+                const commentContent = document.querySelector('#comment-content-{{$comment->id}}');
+                const editCommentForm = document.querySelector('#edit-comment-form-{{$comment->id}}');
 
-            // Toggle between displaying the content and the edit form
-            if (commentContent && editCommentForm) {
-                commentContent.style.display = commentContent.style.display === 'none' ? 'block' : 'none';
-                editCommentForm.style.display = editCommentForm.style.display === 'none' ? 'block' : 'none';
-            }
+                // Toggle between displaying the content and the edit form
+                if (commentContent && editCommentForm) {
+                    commentContent.style.display = commentContent.style.display === 'none' ? 'block' : 'none';
+                    editCommentForm.style.display = editCommentForm.style.display === 'none' ? 'block' : 'none';
+                }
+            });
         });
     });
-});
 
 </script>

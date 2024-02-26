@@ -49,6 +49,7 @@ class OrdersController extends Controller
     }
     public function show()
     {
+       try {
         $user = auth()->user();
         $orders = Orders::all();
         $favoritesCount = (new FavoritesController)->count();
@@ -63,11 +64,15 @@ class OrdersController extends Controller
             "cartCount" => $cartCount,
             'user' => $user
         ]);
+       } catch (\Exception $ex) {
+        return redirect()->back()->with('error', $ex->getMessage());
+       }
     }
 
     public function update(Orders $order)
     {
-        $order = Orders::find($order->id);
+        try {
+            $order = Orders::find($order->id);
         if ($order->status === 'Pending') {
             $order->status = 'Processing';
         } else if ($order->status === 'Processing') {
@@ -77,6 +82,9 @@ class OrdersController extends Controller
         }
         $order->save();
         return redirect()->back()->with("success","Order updated successfully!");
+        } catch (\Exception $ex) {
+            return redirect()->back()->with("error", $ex->getMessage());
+        }
     }
 
     public function getProducts($orderId)
