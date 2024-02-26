@@ -10,6 +10,7 @@ class OrderedProducts extends Model
     protected $fillable = [
         'user_id',
         'product_id',
-        'uuid'
+        'uuid',
+        'quantity'
     ];
 }

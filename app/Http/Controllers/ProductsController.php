@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use Egulias\EmailValidator\Parser\Comment;
 use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\Photo;

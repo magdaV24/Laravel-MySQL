@@ -55,8 +55,9 @@
                         @endif
                         @else
                         <li class="nav-item dropdown">
-                            <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" style="color: inherit; font-size: 1rem"
-                                data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
+                            <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button"
+                                style="color: inherit; font-size: 1rem" data-bs-toggle="dropdown" aria-haspopup="true"
+                                aria-expanded="false" v-pre>
                                 {{ Auth::user()->name }}
                             </a>
 
@@ -68,6 +69,11 @@
                                 <a class="dropdown-item" href="{{ route('account.home', ['user'=> $user->id])}}">
                                     Dashboard
                                 </a>
+                                @if(Auth::user()->role === 'admin')
+                                <a class="dropdown-item" href="{{ route('order.show')}}">
+                                    Orders
+                                </a>
+                                @endif
 
                                 <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
                                     @csrf
@@ -75,13 +81,17 @@
                             </div>
                         </li>
                         <li class="mx-2 text-danger">
-                            <a class="d-flex flex-row gap-1" style="color: #134485; font-size: 1.2rem; text-decorations:none"href="{{ route('cart.index', ['user'=> $user->id])}}">
-                            <i class="bi bi-cart"></i> Shopping Cart {{ $cartCount}}
+                            <a class="d-flex flex-row gap-1"
+                                style="color: #134485; font-size: 1.2rem; text-decorations:none"
+                                href="{{ route('cart.index', ['user'=> $user->id])}}">
+                                <i class="bi bi-cart"></i> Shopping Cart {{ $cartCount}}
                             </a>
                         </li>
                         <li class="mx-2 text-danger">
-                            <a class="d-flex flex-row gap-1" style="color: #9F060F; font-size: 1.2rem; text-decorations:none" href="{{ route('favorites.index', ['user'=> $user->id])}}">
-                            <i class="bi bi-bag-heart-fill"></i> Favorites {{ $favoritesCount }}
+                            <a class="d-flex flex-row gap-1"
+                                style="color: #9F060F; font-size: 1.2rem; text-decorations:none"
+                                href="{{ route('favorites.index', ['user'=> $user->id])}}">
+                                <i class="bi bi-bag-heart-fill"></i> Favorites {{ $favoritesCount }}
                             </a>
                         </li>
                         @endguest

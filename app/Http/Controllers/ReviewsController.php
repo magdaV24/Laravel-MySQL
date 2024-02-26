@@ -53,22 +53,22 @@ class ReviewsController extends Controller
     {
         $review = Reviews::find($reviewId);
         $verified = OrderedProducts::where("user_id", $review->user_id)->where("product_id", $review->product_id)->exists();
-
         return $verified;
     }
 
-    public function update(Request $request, Reviews $review){
-        if(! $review){
-            return redirect()->back()->with("error","Review not found.");
+    public function update(Request $request, Reviews $review)
+    {
+        if (!$review) {
+            return redirect()->back()->with("error", "Review not found.");
         }
-        if( $request['content'] !== null){
+        if ($request['content'] !== null) {
             $review->content = $request['content'];
         }
-        if( $request['grade'] !== null){
+        if ($request['grade'] !== null) {
             $review->grade = $request['grade'];
         }
         $review->save();
-        return redirect()->back()->with('success','Review edited successfully!');
+        return redirect()->back()->with('success', 'Review edited successfully!');
     }
 
     public function delete($review)
@@ -77,8 +77,8 @@ class ReviewsController extends Controller
             $review = Reviews::findOrFail($review);
             $review->delete();
             return redirect()->back()->with('success', 'Review deleted successfully!');
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return redirect()->back()->with('error', 'Review not found.');
+        } catch (\Exception $ex) {
+            return redirect()->back()->with('error', 'Error while looking for you review: ' . $ex->getMessage());
         }
     }
 }

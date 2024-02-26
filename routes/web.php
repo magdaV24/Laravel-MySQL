@@ -68,16 +68,12 @@ Route::prefix('/cart')->group(function () {
     Route::patch('/decrement/{product_id}', [App\Http\Controllers\CartController::class, 'decrement'])->name('cart.decrement');
 });
 
-
-// Managing the ordered products;
-
-Route::prefix('orderedProducts')->group(function () {
-});
-
 // Managing orders;
 
 Route::prefix('/order')->group(function () {
     Route::post('/store/{user}', [App\Http\Controllers\OrdersController::class, 'store'])->name('order.store');
+    Route::get('/show', [App\Http\Controllers\OrdersController::class, 'show'])->name('order.show');
+    Route::patch('/update/{order}', [App\Http\Controllers\OrdersController::class, 'update'])->name('order.update');
 });
 
 // Managing the reviews;

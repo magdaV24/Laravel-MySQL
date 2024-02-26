@@ -26,8 +26,9 @@
                             <label for="new_name" class="col-md-4 col-form-label text-md-end">New Name</label>
 
                             <div class="col-md-6">
-                                <input id="new_name" type="text" class="form-control @error('name') is-invalid @enderror"
-                                    name="name" placeholder={{$user->name}}>
+                                <input id="new_name" type="text"
+                                    class="form-control @error('name') is-invalid @enderror" name="name"
+                                    placeholder={{$user->name}}>
                             </div>
                         </div>
 
@@ -35,8 +36,9 @@
                             <label for="new_email" class="col-md-4 col-form-label text-md-end">New Email Address</label>
 
                             <div class="col-md-6">
-                                <input id="new_email" type="email" class="form-control @error('email') is-invalid @enderror"
-                                    name="email" placeholder={{$user->email}}>
+                                <input id="new_email" type="email"
+                                    class="form-control @error('email') is-invalid @enderror" name="email"
+                                    placeholder={{$user->email}}>
                             </div>
                         </div>
 
@@ -75,10 +77,10 @@
                                 <input class="form-control" type="file" id="new_avatar" name="avatar">
                             </div>
                         </div>
-                        <div class="row mb-0">
-                            <div class="col-md-6 offset-md-4">
-                                <button type="submit" class="btn btn-primary">
-                                   Save Changes
+                        <div class="mb-12 d-flex" style="margin-top: 2rem;">
+                            <div class="col-md-3 offset-md-4">
+                                <button type="submit" class="btn btn-secondary">
+                                    Save Changes
                                 </button>
                             </div>
                         </div>

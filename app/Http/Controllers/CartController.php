@@ -27,7 +27,6 @@ class CartController extends Controller
             $product->totalPrice = $product->quantity * $product->price;
             $products[] = $product;
         }
-
         return view("cart.index", [
             "user" => $user,
             "favoritesCount" => $favoritesCount,

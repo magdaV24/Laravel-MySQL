@@ -28,12 +28,12 @@
                 <td>{{$product->price}}$</td>
                 <td>{{$product->totalPrice}}$</td>
                 <td class="d-flex flex-row gap-3 justify-content-center align-items-center" style="height: 6.22rem">
-                <form action="{{ route('cart.decrement', ['product_id' => $product->id]) }}" method="POST">
+                    <form action="{{ route('cart.decrement', ['product_id' => $product->id]) }}" method="POST">
                         @csrf
                         @method('PATCH')
                         <button type="submit" class="btn btn-outline-info">
-                        <i class="bi bi-dash-circle"></i>
-                    </button>
+                            <i class="bi bi-dash-circle"></i>
+                        </button>
                     </form>
 
                     <span>{{$product->quantity}}</span>
@@ -41,8 +41,8 @@
                         @csrf
                         @method('PATCH')
                         <button type="submit" class="btn btn-outline-info">
-                        <i class="bi bi-plus-circle"></i>
-                    </button>
+                            <i class="bi bi-plus-circle"></i>
+                        </button>
                     </form>
                 </td>
                 <td>
@@ -61,15 +61,31 @@
             @endforeach
         </tbody>
     </table>
-    <div class="d-flex flex-column gap-3 justify-content-end align-items-end" >
+    <div class="d-flex flex-column gap-3 justify-content-end align-items-end">
         <h4>Total: {{$cartTotal}} $</h4>
-        <form action="{{ route('order.store', ['user' => $user]) }}" method="POST">
-                        @csrf
-                        <button type="submit" class="btn btn-success">
-                            Place Order
-                        </button>
-                    </form>
-</div>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#makeAnOrder">
+            Place an Order
+        </button>
+
+        <!-- Modal -->
+        <div class="modal fade" id="makeAnOrder" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="exampleModalLabel">Place an Order</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+
+                        @include('orders.store', ['addresses'=> auth()->user()->addresses])
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 @endsection
-
