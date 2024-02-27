@@ -7,7 +7,7 @@
 
         <div class="card">
             <div class="card-header">
-                <h6>Order ID: {{$order->uuid}}</h3>
+                <h6>Order ID: {{$order->id}}</h3>
             </div>
             <div class="card-body d-flex justify-content-between p-3 ap-3">
                 <div>

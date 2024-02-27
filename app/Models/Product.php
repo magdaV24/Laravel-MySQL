@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Model;
 
 class Product extends Model
@@ -18,8 +18,13 @@ class Product extends Model
         'name',
         'price',
         'description',
-        'uuid'
+        'uuid',
     ];
+
+    public function photos()
+    {
+        return $this->hasMany(Photo::class);
+    }
 
     public function reviews()
     {
@@ -31,7 +36,4 @@ class Product extends Model
         return $this->hasMany(Comments::class);
     }
 
-    public function photos(){
-        return $this->hasMany(Photo::class);
-    }
 }

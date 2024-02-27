@@ -88,7 +88,7 @@ class CartController extends Controller
         return redirect()->back()->with('success', 'Product eliminated from the wishlist');
     }
 
-    public function count()
+    public function count(): int
     {
         $user = Auth::user();
         $cartCount = Cart::where("user_id", $user->id)->count();
@@ -97,30 +97,49 @@ class CartController extends Controller
 
     public function getQuantity($productId)
     {
-        $user = Auth::user();
-        $product = Product::find($productId);
-        $quantity = Cart::where("user_id", $user->id)->where("product_id", $product->id)->value("quantity");
-        return $quantity;
+        try {
+            $user = Auth::user();
+            $product = Product::findOrFail($productId);
+            $quantity = Cart::where("user_id", $user->id)
+                ->where("product_id", $product->id)
+                ->value("quantity");
+            return $quantity ?? 0;
+        } catch (\Exception $e) {
+            \Log::error('Error in getQuantity function: ' . $e->getMessage());
+            return redirect()->back()->with("error", $e->getMessage());
+        }
     }
 
-    public function getTotalPrice(Array $productIds)
+    public function getTotalPrice(array $productIds)
     {
-        $cartTotal = 0;
-        foreach ($productIds as $productId) {
-            $product = Product::find($productId);
-            $productQuantity = (new CartController)->getQuantity($product->id);
-            $cartTotal += $product->price * $productQuantity;
+        try {
+            $cartTotal = 0;
+            foreach ($productIds as $productId) {
+                $product = Product::find($productId);
+                if (!$product) {
+                    continue;
+                }
+                $productQuantity = (new CartController)->getQuantity($product->id);
+                $cartTotal += $product->price * $productQuantity;
+            }
+            return $cartTotal;
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
         }
-        return $cartTotal;
     }
 
-    public function isInCart($productId){
-        $userId = auth()->user()->id;
-        if(!$userId){
-            return redirect()->to('/login');
+    public function isInCart($productId)
+    {
+        try {
+            $userId = auth()->user()->id;
+            if (!$userId) {
+                return redirect()->to('/login');
+            }
+            $favorite = Cart::where('product_id', $productId)->where('user_id', $userId)
+                ->exists();
+            return $favorite;
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
         }
-        $favorite = Cart::where('product_id', $productId)->where('user_id', $userId)
-        ->exists();
-        return $favorite;
     }
 }

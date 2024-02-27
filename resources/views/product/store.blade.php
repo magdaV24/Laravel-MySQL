@@ -3,15 +3,23 @@
 <div class="card p-1">
     <div class="card-header">{{ __('Add Product') }}</div>
 
-    @if ($errors->any())
-    <div class="alert alert-danger">
-        <ul>
-            @foreach ($errors->all() as $error)
-            <li>{{ $error }}</li>
-            @endforeach
-        </ul>
-    </div>
-    @endif
+    @if(session('error'))
+<div class="card border-danger mb-3 offset-md-2" style="max-width: 18rem; margin-top: 0.25rem;">
+  <div class="card-header bg-danger text-white">Error</div>
+  <div class="card-body text-danger">
+    <p class="card-text">{{ session('error') }}</p>
+  </div>
+</div>
+@endif
+@if(session('success'))
+<div class="card border-success mb-3 offset-md-2" style="max-width: 18rem; margin-top: 0.25rem;">
+  <div class="card-header bg-success text-white">Message</div>
+  <div class="card-body text-success">
+    <p class="card-text">{{ session('success') }}</p>
+  </div>
+</div>
+@endif
+
     <form method="POST" class='p-2' action="{{ route('product.store', ['user' => $user]) }}"
         enctype="multipart/form-data">
         @csrf

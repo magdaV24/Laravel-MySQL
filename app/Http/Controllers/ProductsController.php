@@ -14,47 +14,52 @@ class ProductsController extends Controller
 {
     public function store(Request $request)
     {
-        $uuid = Str::uuid();
-        $request->validate([
-            'name' => ['required', 'string', 'max:50'],
-            'price' => ['required', 'numeric', 'min:0'],
-            'description' => ['required', 'string', 'max:400'],
-            'photos.*' => ['nullable', 'image', 'max:2048'],
-            'uuid' => ['nullable', 'string', 'max:100']
-        ]);
+        try {
+            $uuid = Str::uuid();
+            $request->validate([
+                'name' => ['required', 'string', 'max:50'],
+                'price' => ['required', 'numeric', 'min:0'],
+                'description' => ['required', 'string', 'max:400'],
+                'photos.*' => ['nullable', 'image', 'max:2048'],
+                'uuid'=> ['nullable','string'],
+            ]);
 
-        if ($request->hasFile('photos')) {
-            foreach ($request->file('photos') as $photo) {
-                $uploadedFile = $photo->getRealPath();
-                $uploadResult = Cloudinary::upload($uploadedFile);
+            if ($request->hasFile('photos')) {
+                foreach ($request->file('photos') as $photo) {
+                    $uploadedFile = $photo->getRealPath();
+                    $uploadResult = Cloudinary::upload($uploadedFile);
 
-                $publicId = $uploadResult->getPublicId();
+                    $publicId = $uploadResult->getPublicId();
 
+                    Photo::create([
+                        'url' => $publicId,
+                        'uuid' => $uuid,
+                    ]);
+                }
+            } else {
+                // If the admin does not upload any photos, this one will be assigned;
+                $defaultUrl = 'pexels-pixabay-268349_onacrr';
                 Photo::create([
-                    'url' => $publicId,
-                    'uuid' => $uuid
+                    'url' => $defaultUrl,
+                    'uuid' => $uuid,
                 ]);
             }
-        } else {
-            // If the user does not upload any avatars, they will get a default one;
-            $defaultUrl = 'pexels-pixabay-268349_onacrr';
-            Photo::create([
-                'url' => $defaultUrl,
-                'uuid' => $uuid
-            ]);
-        }
 
-        Product::create([
-            'name' => $request['name'],
-            'price' => $request['price'],
-            'description' => $request['description'],
-            'uuid' => $uuid,
-        ]);
-        return redirect()->back()->with('success', 'Product added successfully.');
+            Product::create([
+                'name' => $request['name'],
+                'price' => $request['price'],
+                'description' => $request['description'],
+                'uuid' => $uuid,
+            ]);
+            return back()->with('success', 'Product added successfully.');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
     }
 
     public function index($product)
     {
+       try {
         $user = auth()->user();
         $product = Product::findOrFail($product);
         $photos = Photo::where('uuid', $product->uuid)->pluck('url');
@@ -74,8 +79,8 @@ class ProductsController extends Controller
         }
         $count === 0 ? $product->grade = 0 : $product->grade = $grade / $count;
         $product->favorite = (new FavoritesController)->isInWishlist($product->id); /*checks if the product is in the wishlist;
-        based on whether or not the product is in the wishlist, the user will get option to remove/add the product from/to the wishlist
-        */
+based on whether or not the product is in the wishlist, the user will get option to remove/add the product from/to the wishlist
+*/
         $product->cart = (new CartController())->isInCart($product->id); /*checks if the product is in the cart;*/
         return view('product.index', [
             'user' => $user,
@@ -85,6 +90,9 @@ class ProductsController extends Controller
             'cartCount' => $cartCount,
             'reviews' => $reviews
         ]);
+       } catch (\Exception $e) {
+        return back()->with('error', $e->getMessage());
+       }
     }
 
     public function edit($product)
@@ -106,6 +114,7 @@ class ProductsController extends Controller
     public function update(Request $request, Product $product, $uuid)
     {
 
+       try {
         $validData = $request->validate([
             'name' => ['required', 'string', 'max:50'],
             'price' => ['required', 'numeric', 'min:0'],
@@ -127,26 +136,27 @@ class ProductsController extends Controller
             }
         }
         $product->update($validData);
-        return redirect()->back()->with('success', 'Product edited successfully.');
+        return back()->with('success', 'Product edited successfully.');
+       } catch (\Exception $e) {
+        return back()->with('error', $e->getMessage());
+       }
     }
 
     public function delete($product)
     {
         $product = Product::findOrFail($product);
-        if(!$product)
-        {
-            return redirect()->back()->with('error','Product not found.');
+        if (!$product) {
+            return redirect()->back()->with('error', 'Product not found.');
         }
 
         $photos = Photo::where('product_id', $product->id)->get();
-        foreach($photos as $photo)
-        {
+        foreach ($photos as $photo) {
             (new PhotoController)->delete($photo->url);
         }
         $product->delete();
         $product->reviews()->delete();
         $product->comments()->delete();
 
-        return redirect()->back()->with('success','Product deleted successfully!');
+        return back()->with('success', 'Product deleted successfully!');
     }
 }

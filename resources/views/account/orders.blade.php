@@ -1,6 +1,6 @@
-<div>
+@if(count($orders) > 0)
+<div style="margin-top: 2rem">
     <h5>Your Orders:</h5>
-
     @foreach($orders as $order)
     <div class="card">
         <div class="card-header">
@@ -11,9 +11,9 @@
                 @php
                 $count=1;
                 @endphp
-
                 @foreach($order->products as $product)
-                <div class="d-flex gap-4 p-2 justify-content-start align-items-center" style="border: 1px solid #B6AFB5; margin-bottom: 5px">
+                <div class="d-flex gap-4 p-2 justify-content-start align-items-center"
+                    style="border: 1px solid #B6AFB5; margin-bottom: 5px">
                     <div>{{$count}}</div>
                     <div>
                         @include('components.cld-img', ['public_id'=>$product->photos[0], 'width'=>50,
@@ -22,7 +22,6 @@
                     <div>
                         {{$product->name}} X {{$product->quantity}}
                     </div>
-
                 </div>
                 @php
                 $count++
@@ -39,11 +38,13 @@
                 Additional Information: {{$order->address->info}} <br />
             </div>
             <div class="d-flex gap-2">
-            <h5>Status:</h5>
-            <div>{{$order->status}}</div>
+                <h5>Status:</h5>
+                <div>{{$order->status}}</div>
             </div>
         </div>
     </div>
-
     @endforeach
 </div>
+@else
+<p style="margin-top: 2rem">You placed no orders.</p>
+@endif

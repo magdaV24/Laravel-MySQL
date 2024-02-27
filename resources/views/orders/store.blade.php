@@ -1,4 +1,4 @@
-<div class="card p-1 container mt-4" style="margin-bottom: 10px;">
+<div class="card container mt-4" style="max-width: 600px; margin-bottom: 10px;">
     @if ($errors->any())
     <div class="alert alert-danger">
         <ul>
@@ -8,52 +8,58 @@
         </ul>
     </div>
     @endif
-    <form action="{{ route('order.store', ['user' => $user]) }}" method="POST" class="card d-flex flex-column">
+    <form action="{{ route('order.store', ['user' => $user]) }}" method="POST" class="card-body">
         @csrf
-        <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
-            <label for="paying-method">Choose your preferred paying method:</label>
-            <input type="radio" class="btn-check paying-method-value" id="btn-radio1" name="paying-method" value="Cash" autocomplete="off">
-            <label class="btn btn-outline-primary" for="btn-radio1">Cash</label>
-
-            <input type="radio" class="btn-check paying-method-value" id="btn-radio2" name="paying-method" value="Credit Card" autocomplete="off">
-            <label class="btn btn-outline-primary" for="btn-radio2">Credit Card</label>
-            <!-- No need for hidden input here -->
+        <div class="form-group" style="margin-bottom: 1rem">
+            <label for="paying-method" style="margin-bottom: .75rem">Choose your preferred paying method:</label><br>
+            <div class="btn-group btn-group-toggle"  data-toggle="buttons">
+                <label class="btn btn-outline-primary">
+                    <input type="radio" name="paying-method" value="Cash" autocomplete="off"> Cash
+                </label>
+                <label class="btn btn-outline-primary">
+                    <input type="radio" name="paying-method" value="Credit Card" autocomplete="off"> Credit Card
+                </label>
+            </div>
         </div>
 
-        <div class="btn-group d-flex flex-column" role="group" aria-label="Basic checkbox toggle button group">
-            @foreach($addresses as $address)
-            <div style="display: flex; gap: 5px; ">
-                <div>
-                    <input type="checkbox" class="btn-check address-checkbox" id="btn-check-{{$address->id}}" name="address" value="{{$address->id}}" autocomplete="off">
-                    <label class="btn btn-outline-primary" for="btn-check-{{$address->id}}">Address</label>
-                </div>
-                <div>
-                    <p>{{$address->city}}, {{$address->street}}, number {{$address->number}}</p>
-                </div>
+        <div class="form-group" style="margin-bottom: 1rem">
+           @if(count($addresses)===0)
+           <label>No addresses found. Go to your account page and add one!</label><br>
+           @else
+           <label style="margin-bottom: .75rem">Select Address:</label><br>
+           @foreach($addresses as $address)
+            <div class="form-check">
+                <input type="radio" class="form-check-input" id="address-{{$address->id}}" name="address" value="{{$address->id}}">
+                <label class="form-check-label" for="address-{{$address->id}}">{{$address->city}}, {{$address->street}}, number {{$address->number}}</label>
             </div>
             @endforeach
+           @endif
+
         </div>
-        <button class="btn btn-outline-info" type="submit">Submit Order</button>
+@if(count($addresses) > 0)
+<button class="btn btn-outline-info" type="submit">Submit Order</button>
+@endif
         <!-- Hidden inputs to store selected values -->
         <input type="hidden" id="selected-address" name="selected-address">
         <input type="hidden" id="selected-paying-method" name="selected-paying-method">
     </form>
 </div>
+
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         // Handling paying method selection
-        var payingMethodItems = document.querySelectorAll('.paying-method-value');
+        var payingMethodItems = document.querySelectorAll('input[name="paying-method"]');
         payingMethodItems.forEach(function (item) {
-            item.addEventListener('click', function () {
+            item.addEventListener('change', function () {
                 document.getElementById('selected-paying-method').value = item.value;
             });
         });
 
         // Handling address selection
-        var addressCheckboxes = document.querySelectorAll('.address-checkbox');
-        addressCheckboxes.forEach(function (checkbox) {
-            checkbox.addEventListener('click', function () {
-                document.getElementById('selected-address').value = checkbox.value;
+        var addressRadios = document.querySelectorAll('input[name="address"]');
+        addressRadios.forEach(function (radio) {
+            radio.addEventListener('change', function () {
+                document.getElementById('selected-address').value = radio.value;
             });
         });
     });

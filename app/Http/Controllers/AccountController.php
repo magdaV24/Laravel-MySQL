@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 use Cloudinary\Api\Admin\AdminApi;
-use Illuminate\Validation\Rule;
 
 class AccountController extends Controller
 {
@@ -38,20 +37,24 @@ class AccountController extends Controller
                 'orders' => $orders
             ]);
         } catch (\Exception $ex) {
-            return redirect()->back()->with('error', 'Error updating your account: ' . $ex->getMessage());
+            return back()->with('error', 'Error updating your account: ' . $ex->getMessage());
         }
     }
 
     public function edit($user)
     {
-        $user = User::findOrFail($user);
-        $favoritesCount = (new FavoritesController())->count();
-        $cartCount = (new CartController())->count();
-        return view('account.edit', [
-            'user' => $user,
-            'favoritesCount' => $favoritesCount,
-            'cartCount' => $cartCount
-        ]);
+        try {
+            $user = User::findOrFail($user);
+            $favoritesCount = (new FavoritesController())->count();
+            $cartCount = (new CartController())->count();
+            return view('account.edit', [
+                'user' => $user,
+                'favoritesCount' => $favoritesCount,
+                'cartCount' => $cartCount
+            ]);
+        } catch (\Exception $ex) {
+            return back()->with('error', 'Error while trying to fetch this account: ' . $ex->getMessage());
+        }
     }
 
     public function update(Request $request, $userId)
@@ -91,7 +94,7 @@ class AccountController extends Controller
                 return back()->with("error", "Wrong password.");
             }
         } catch (\Exception $ex) {
-            return redirect()->back()->with('error', 'Error updating your account: ' . $ex->getMessage());
+            return back()->with('error', 'Error updating your account: ' . $ex->getMessage());
         }
     }
 
@@ -99,19 +102,22 @@ class AccountController extends Controller
     {
         try {
             $user = User::find(auth()->user()->id);
-            if ($user) {
-                if (Hash::check($request['password'], $user->password)) {
-                    $user->delete();
-                    return redirect()->route('/login')->with('success', 'Account deleted successfully.');
-                } else {
-                    return back()->with('error', 'Incorrect password!');
-                }
+            if (!$user) {
+                return back()->with('error', 'User not found.');
+            }
+            if (Hash::check($request['password'], $user->password)) {
+                $publicId = $user->avatar;
+                (new AdminApi())->deleteAssets(
+                    $publicId,
+                    ["resource_type" => "image", "type" => "upload"]
+                );
+                $user->delete();
+                return back()->with('success', 'Account deleted successfully.');
             } else {
-                return redirect()->back()->with('error', 'User not found.');
+                return back()->with('error', 'Incorrect password!');
             }
         } catch (\Exception $ex) {
-            return redirect()->back()->with('error', 'Error deleting account: ' . $ex->getMessage());
+            return back()->with('error', 'Error deleting account: ' . $ex->getMessage());
         }
     }
-
 }
