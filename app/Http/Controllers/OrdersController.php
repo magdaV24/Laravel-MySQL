@@ -60,7 +60,11 @@ class OrdersController extends Controller
             $cartCount = (new CartController)->count();
             foreach ($orders as $order) {
                 $order->products = (new OrdersController)->getProducts($order->id);
-                $order->address = Address::where("id", $order->address_id)->first();
+                $address = Address::where("id", $order->address_id)->first();
+                if($address)
+                {
+                    $order->address = $address;
+                }
             }
             return view("orders.show", [
                 "orders" => $orders,

@@ -28,7 +28,8 @@
                 @endphp
                 @endforeach
             </div>
-            <h5>
+           @if($order->address)
+           <h5>
                 Delivery Address:
             </h5>
             <div>
@@ -37,6 +38,9 @@
                 Number: {{$order->address->number}} <br />
                 Additional Information: {{$order->address->info}} <br />
             </div>
+            @else
+            <p>Address was deleted</p>
+            @endif
             <div class="d-flex gap-2">
                 <h5>Status:</h5>
                 <div>{{$order->status}}</div>

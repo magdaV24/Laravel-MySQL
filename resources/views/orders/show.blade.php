@@ -32,6 +32,7 @@
                     @endphp
                     @endforeach
                 </div>
+                @if($order->address)
                 <div class="d-flex flex-column gap-3">
                     <h5>
                         Address:
@@ -43,6 +44,9 @@
                         Additional Information: {{$order->address->info}} <br />
                     </div>
                 </div>
+                @else
+                <p>Address was deleted</p>
+                @endif
                 <div>
                     <h5>Paying Method: </h5>
                     <div>{{$order->paying_method}}</div>

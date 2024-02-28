@@ -24,7 +24,10 @@ class AccountController extends Controller
             $orders = $user->orders;
             foreach ($orders as $order) {
                 $order->products = (new OrdersController())->getProducts($order->id);
-                $order->address = Address::where("id", $order->address_id)->first();
+                $address = Address::where("id", $order->address_id)->first();
+                if($address){
+                    $order->address = $address;
+                }
             }
             $favoritesCount = (new FavoritesController())->count();
             $cartCount = (new CartController())->count();
