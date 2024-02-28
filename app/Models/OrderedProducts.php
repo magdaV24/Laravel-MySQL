@@ -7,6 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class OrderedProducts extends Model
 {
+    protected $guarded = [];
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
     protected $fillable = [
         'user_id',
         'product_id',

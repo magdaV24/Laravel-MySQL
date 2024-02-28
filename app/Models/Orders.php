@@ -9,6 +9,12 @@ class Orders extends Model
 {
     protected $guarded = [];
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string, float>
+     */
+
     protected $fillable = [
         'user_id',
         'price',
