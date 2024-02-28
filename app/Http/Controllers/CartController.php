@@ -11,91 +11,145 @@ class CartController extends Controller
 {
     public function index()
     {
-        $user = Auth::user();
-        $favoritesCount = (new FavoritesController())->count();
-        $cartCount = (new CartController())->count();
+        try {
+            $user = Auth::user();
+            $favoritesCount = (new FavoritesController())->count();
+            $cartCount = (new CartController())->count();
 
-        $productIds = Cart::where("user_id", $user->id)->pluck("product_id")->toArray();
-        $products = [];
-        $cartTotal = (new CartController())->getTotalPrice($productIds);
-        foreach ($productIds as $id) {
-            $product = Product::find($id);
-            $quantity = (new CartController())->getQuantity($id);
-            $photo = Photo::where('uuid', $product->uuid)->first();
-            $product->photo_url = $photo->url;
-            $product->quantity = $quantity;
-            $product->totalPrice = $product->quantity * $product->price;
-            $products[] = $product;
+            $productIds = Cart::where("user_id", $user->id)->pluck("product_id")->toArray();
+            $products = [];
+            $cartTotal = (new CartController())->getTotalPrice($productIds);
+            foreach ($productIds as $id) {
+                $product = Product::find($id);
+                $quantity = (new CartController())->getQuantity($id);
+                $photo = Photo::where('uuid', $product->uuid)->first();
+                $product->photo_url = $photo->url;
+                $product->quantity = $quantity;
+                $product->totalPrice = $product->quantity * $product->price;
+                $products[] = $product;
+            }
+            return view("cart.index", [
+                "user" => $user,
+                "favoritesCount" => $favoritesCount,
+                'cartCount' => $cartCount,
+                'products' => $products,
+                'cartTotal' => $cartTotal
+            ]);
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
         }
-        return view("cart.index", [
-            "user" => $user,
-            "favoritesCount" => $favoritesCount,
-            'cartCount' => $cartCount,
-            'products' => $products,
-            'cartTotal' => $cartTotal
-        ]);
     }
 
     public function store($productId)
     {
-        $userId = Auth::user()->id;
-        if (!$userId) {
-            return redirect()->to("/login");
+        try {
+            $userId = Auth::user()->id;
+            if (!$userId) {
+                return redirect()->to("/login");
+            }
+            Cart::create([
+                'user_id' => $userId,
+                'product_id' => $productId,
+                'quantity' => 1,
+            ]);
+            return back()->with('success', 'Product added to the cart successfully.');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
         }
-        Cart::create([
-            'user_id' => $userId,
-            'product_id' => $productId,
-            'quantity' => 1,
-        ]);
-        return redirect()->back()->with('success', 'Product added to the cart successfully.');
     }
 
     public function increment($productId)
     {
-        $user = Auth::user();
-        $product = Cart::where('product_id', $productId)->where('user_id', $user->id)->first();
-        if (!$product) {
-            return back()->withErrors(['Product not found in cart.']);
+        try {
+            return $this->incrementQuantity($productId);
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
         }
-        $product->quantity += 1;
-        $product->save();
-        return redirect()->back()->with('success', 'Increased the quantity successfully!');
-
+    }
+    private function incrementQuantity($productId)
+    {
+        try {
+            $user = Auth::user();
+            $product = Cart::where('product_id', $productId)->where('user_id', $user->id)->first();
+            if (!$product) {
+                return back()->with('error', 'Product not found in cart.');
+            }
+            $product->quantity += 1;
+            $product->save();
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
     }
 
     public function decrement($productId)
     {
-        $user = Auth::user();
-        $product = Cart::where('product_id', $productId)->where('user_id', $user->id)->first();
-        if (!$product) {
-            return back()->withErrors(['Product not found in cart.']);
+        try {
+            return $this->decrementQuantity($productId);
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
         }
-        if ($product->quantity == 1) {
-            return back();
+    }
+    private function decrementQuantity($productId)
+    {
+        try {
+            $user = Auth::user();
+            $product = Cart::where('product_id', $productId)->where('user_id', $user->id)->first();
+            if (!$product) {
+                return back()->with('error', 'Product not found in cart.');
+            }
+            if ($product->quantity == 1) {
+                return back();
+            }
+            $product->quantity -= 1;
+            $product->save();
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
         }
-        $product->quantity -= 1;
-        $product->save();
-        return redirect()->back()->with('success', 'Decreased the quantity successfully!');
     }
 
     public function remove($product_id)
     {
-        $user_id = Auth::user()->id;
+        try {
+            $user_id = Auth::user()->id;
 
-        Cart::where('user_id', $user_id)
-            ->where('product_id', $product_id)
-            ->delete();
-        return redirect()->back()->with('success', 'Product eliminated from the wishlist');
+            Cart::where('user_id', $user_id)
+                ->where('product_id', $product_id)
+                ->delete();
+            return back()->with('success', 'Product eliminated from the wishlist');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
     }
 
-    public function count(): int
+    public function count()
     {
-        $user = Auth::user();
-        $cartCount = Cart::where("user_id", $user->id)->count();
-        return $cartCount;
+        try {
+            return $this->cartCount();
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+    private function cartCount()
+    {
+        try {
+            $user = Auth::user();
+            $cartCount = Cart::where("user_id", $user->id)->count();
+            return $cartCount;
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
     }
 
     public function getQuantity($productId)
+    {
+        try {
+            return $this->productQuantity($productId);
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
+    private function productQuantity($productId)
     {
         try {
             $user = Auth::user();
@@ -106,11 +160,20 @@ class CartController extends Controller
             return $quantity ?? 0;
         } catch (\Exception $e) {
             \Log::error('Error in getQuantity function: ' . $e->getMessage());
-            return redirect()->back()->with("error", $e->getMessage());
+            return back()->with("error", $e->getMessage());
         }
     }
 
     public function getTotalPrice(array $productIds)
+    {
+        try {
+            return $this->totalPrice($productIds);
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
+    private function totalPrice(array $productIds)
     {
         try {
             $cartTotal = 0;
@@ -129,6 +192,14 @@ class CartController extends Controller
     }
 
     public function isInCart($productId)
+    {
+        try {
+            return $this->inCart($productId);
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+    private function inCart($productId)
     {
         try {
             $userId = auth()->user()->id;

@@ -43,5 +43,4 @@
             @include('product.store')
         </div>
     </div>
-</div>
 @endsection

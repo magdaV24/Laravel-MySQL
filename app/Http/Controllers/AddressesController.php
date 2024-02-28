@@ -13,54 +13,74 @@ class AddressesController extends Controller
 {
     public function store(Request $request)
     {
-        $validatedData = $request->validate([
-            'city' => ['required', 'string', 'max:50'],
-            'street' => ['required', 'string', 'max:100'],
-            'number' => ['required', 'numeric', 'min:0'],
-            'info' => ['nullable', 'string', 'max:300'],
-        ]);
+        try {
+            $validatedData = $request->validate([
+                'city' => ['required', 'string', 'max:50'],
+                'street' => ['required', 'string', 'max:100'],
+                'number' => ['required', 'numeric', 'min:0'],
+                'info' => ['nullable', 'string', 'max:300'],
+            ]);
 
-        auth()->user()->addresses()->create($validatedData);
-        return redirect()->back()->with('success', 'Address added successfully.');
+            auth()->user()->addresses()->create($validatedData);
+            return back()->with('success', 'Address added successfully.');
+        } catch (\Exception $ex) {
+            return back()->with('error', $ex->getMessage());
+        }
     }
 
 
     public function show(User $user)
     {
-        $addresses = $user->addresses()->get();
-        return view('address.show', compact('addresses'));
+        try {
+            $addresses = $user->addresses()->get();
+            return view('address.show', compact('addresses'));
+        } catch (\Exception $ex) {
+            return back()->with('error', $ex->getMessage());
+        }
     }
 
     public function edit($address)
     {
-        $user = auth()->user();
-        $address = Address::findOrFail($address);
-        $favoritesCount = (new FavoritesController())->count();
-        $cartCount = (new CartController())->count();
-        return view('address.edit', [
-            'user' => $user,
-            'address' => $address,
-            'favoritesCount' => $favoritesCount,
-            'cartCount' => $cartCount
-        ]);
+        try {
+            $user = auth()->user();
+            $address = Address::findOrFail($address);
+            $favoritesCount = (new FavoritesController())->count();
+            $cartCount = (new CartController())->count();
+            return view('address.edit', [
+                'user' => $user,
+                'address' => $address,
+                'favoritesCount' => $favoritesCount,
+                'cartCount' => $cartCount
+            ]);
+        } catch (\Exception $ex) {
+            return back()->with('error', $ex->getMessage());
+        }
     }
     public function update(Request $request, $address)
     {
-        $address = Address::findOrFail($address);
-        $validData = $request->validate([
-            'city' => ['nullable', 'string', 'max:50'],
-            'number' => ['nullable', 'numeric', 'min:1'],
-            'street' => ['nullable', 'string', 'max:400'],
-            'info' => ['nullable', 'string', 'max:400'],
-        ]);
-        $address->update($validData);
-        return redirect()->back()->with('success', 'Address updated successfully!');
+        try {
+            $address = Address::findOrFail($address);
+            $validData = $request->validate([
+                'city' => ['nullable', 'string', 'max:50'],
+                'number' => ['nullable', 'numeric', 'min:1'],
+                'street' => ['nullable', 'string', 'max:400'],
+                'info' => ['nullable', 'string', 'max:400'],
+            ]);
+            $address->update($validData);
+            return back()->with('success', 'Address updated successfully!');
+        } catch (\Exception $ex) {
+            return back()->with('error', $ex->getMessage());
+        }
     }
 
     public function delete($address)
     {
-        $address = Address::findOrFail($address);
-        $address->delete();
-        return redirect()->back()->with('success', 'Address deleted successfully!');
+        try {
+            $address = Address::findOrFail($address);
+            $address->delete();
+            return back()->with('success', 'Address deleted successfully!');
+        } catch (\Exception $ex) {
+            return back()->with('error', $ex->getMessage());
+        }
     }
 }

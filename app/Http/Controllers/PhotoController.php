@@ -9,21 +9,27 @@ class PhotoController extends Controller
 {
     public function delete($public_id)
     {
-       $photo = Photo::where("url", $public_id);
+        try {
 
-       if (!$photo) {
-        return response()->json(['message' => 'Photo not found'], 404);
-    }
+            $photo = Photo::where("url", $public_id);
 
-    $result = (new AdminApi())->deleteAssets($public_id,
-    ["resource_type" => "image", "type" => "upload"]);
+            if (!$photo) {
+                return back()->with("error", "Photo not found.");
+            }
 
-    if ($result) {
-        $photo->delete();
-        return redirect()->back()->with('success', 'Photo deleted successfully.');
-    } else {
-        return response()->json(['message' => 'Failed to delete photo from Cloudinary'], 500);
-    }
+            $result = (new AdminApi())->deleteAssets(
+                $public_id,
+                ["resource_type" => "image", "type" => "upload"]
+            );
 
+            if ($result) {
+                $photo->delete();
+                return back()->with('success', 'Photo deleted successfully.');
+            } else {
+                return back()->with('error', 'Could not delete the photo.');
+            }
+        } catch (\Exception $ex) {
+            return back()->with('error', $ex->getMessage());
+        }
     }
 }

@@ -17,6 +17,10 @@
 
     <!-- Scripts -->
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-..."
+        crossorigin="anonymous"></script>
+
 </head>
 
 <body>
@@ -104,6 +108,68 @@
             @yield('content')
         </main>
     </div>
+
+        <!-- Error Modal -->
+<div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="errorModalLabel">Error</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>{{ session('error') }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Success Modal -->
+<div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="successModalLabel">Success</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>{{ session('success') }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+@if(session('error'))
+<input type="hidden" id="errorFlag" value="true">
+@endif
+
+@if(session('success'))
+<input type="hidden" id="successFlag" value="true">
+@endif
+    @if(session('error'))
+<input type="hidden" id="errorFlag" value="true">
+@endif
+
+@if(session('success'))
+<input type="hidden" id="successFlag" value="true">
+@endif
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    $(document).ready(function() {
+
+        if ($('#errorFlag').val() === "true") {
+            $('#errorModal').modal('show');
+        }
+
+        if ($('#successFlag').val() === "true") {
+            $('#successModal').modal('show');
+        }
+    });
+</script>
 </body>
 
 </html>

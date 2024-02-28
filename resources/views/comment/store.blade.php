@@ -1,16 +1,5 @@
 <div class="card p-1 container mt-4">
     <div class="card-header">{{ __('Reply') }}</div>
-
-    @if(session('error'))
-    <div class="alert alert-danger">
-        {{ session('error') }}
-    </div>
-    @endif
-    @if(session('success'))
-    <div class="alert alert-success">
-        {{ session('success') }}
-    </div>
-    @endif
     <form method="POST" class='p-2'
         action="{{ route('comment.store', ['productId'=>$review->product_id, 'reviewId'=>$review->id]) }}">
         @csrf

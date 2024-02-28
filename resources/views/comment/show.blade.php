@@ -9,9 +9,11 @@
         </div>
         <div class="d-flex gap-2">
             @if($comment->user_id === auth()->user()->id)
-            <div class="btn btn-outline-info " id="edit-comment-toggle-{{$comment->id}}" style="display: block"><i
-                    class="bi bi-pen"></i></div>
+            <div id="edit-comment-toggle-{{$comment->id}}" style="display: block"><i
+                    class="bi bi-pen btn btn-outline-info "></i></div>
+            <div>
             @include('comment.delete', ['comment'=> $comment])
+            </div>
             @endif
         </div>
     </div>

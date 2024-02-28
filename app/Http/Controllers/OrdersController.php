@@ -40,7 +40,7 @@ class OrdersController extends Controller
                 'paying_method' => $request['paying-method']
             ]);
             if (!$order->exists()) {
-                return redirect()->back()->with("error", "Something went wrong.");
+                return back()->with("error", "Something went wrong.");
             }
             ;
             foreach ($productIds as $productId) {
@@ -69,7 +69,7 @@ class OrdersController extends Controller
                 'user' => $user
             ]);
         } catch (\Exception $ex) {
-            return redirect()->back()->with('error', $ex->getMessage());
+            return back()->with('error', $ex->getMessage());
         }
     }
 
@@ -95,6 +95,15 @@ class OrdersController extends Controller
     }
 
     public function getProducts($orderId)
+    {
+        try {
+            return $this->getOrderProducts($orderId);
+        } catch (\Exception $ex) {
+            return back()->with("error", $ex->getMessage());
+        }
+    }
+
+    private function getOrderProducts($orderId)
     {
         try {
             $order = Orders::find($orderId);

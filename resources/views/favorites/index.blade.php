@@ -22,7 +22,6 @@
             <div class="card-actions p-1 d-flex flex-column justify-content-center align-items-center">
                 <button class="btn btn-primary btn-block p-1 m-1" style="width: 12.5rem;">Add to Cart
                 </button>
-
             </div>
         </div>
         @endforeach

@@ -1,13 +1,4 @@
 <div class="card container mt-4" style="max-width: 600px; margin-bottom: 10px;">
-    @if ($errors->any())
-    <div class="alert alert-danger">
-        <ul>
-            @foreach ($errors->all() as $error)
-            <li>{{ $error }}</li>
-            @endforeach
-        </ul>
-    </div>
-    @endif
     <form action="{{ route('order.store', ['user' => $user]) }}" method="POST" class="card-body">
         @csrf
         <div class="form-group" style="margin-bottom: 1rem">

@@ -1,26 +1,28 @@
 <div class="card">
-<div class="card-header d-flex justify-content-between gap-3 align-items-center">
-    <div class="d-flex align-items-center" >
-        <div class="d-flex justify-content-center align-items-center p-1 gap-2"
-            style="border-radius: 50%; overflow: hidden; width: 2rem; height: 2rem;">
-            @include('components.cld-img', ['public_id'=>$review->avatar, 'width'=>35, 'height'=>35])
+    <div class="card-header d-flex justify-content-between gap-3 align-items-center">
+        <div style="width: 50%; display: flex; justify-content: start; align-items: center; gap: 1rem;">
+            <div class="d-flex justify-content-center align-items-center p-1 gap-2"
+                style="border-radius: 50%; overflow: hidden; width: 2rem; height: 2rem;">
+                @include('components.cld-img', ['public_id'=>$review->avatar, 'width'=>35, 'height'=>35])
+            </div>
+            <div>{{$review->name}} gave {{$review->grade}} stars</div>
+            @if($review->verified)
+            <div class='d-flex' style="width: 50%; display: flex; justify-content: start; gap: 0.2rem; align-items: center">(
+                <i class="bi bi-star-fill" style="color: #FFC400;"></i>
+                <div>Verified purchase!</div> )
+            </div>
+            @endif
         </div>
-        <p>{{$review->name}} gave {{$review->grade}} stars</p>
-        @if($review->verified)
-        <div class='d-flex' >(
-            <i class="bi bi-star-fill" style="color: #FFC400;"></i>
-            <p>Verified purchase!</p> )
+        <div style="width: 25%; display: flex; justify-content: end; align-items: center; gap: 1rem;">
+            @if($review->user_id === auth()->user()->id)
+            <div class="btn btn-outline-info" id="edit-review-toggle-{{$review->id}}" style="display: block"><i
+                    class="bi bi-pen"></i></div>
+            <div style="display: flex; justify-content: center; align-items: center">
+            @include('review.delete', ['review'=> $review])
+            </div>
+            @endif
         </div>
-        @endif
     </div>
-    <div class="d-flex flex-column justify-content-center align-items-center gap-2">
-        @if($review->user_id === auth()->user()->id)
-        <div class="btn btn-outline-info" id="edit-review-toggle-{{$review->id}}" style="display: block"><i
-                class="bi bi-pen"></i></div>
-        @include('review.delete', ['review'=> $review])
-        @endif
-    </div>
-</div>
 
     <div class="card-body" id="review-content-{{$review->id}}" style="display: block">
         <p>{{$review->content}}</p>

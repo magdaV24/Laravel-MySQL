@@ -54,5 +54,6 @@
         @include('review.show', ['review'=>$review])
         @endforeach
     </div>
-</div>
 @endsection
+
+
