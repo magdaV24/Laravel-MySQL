@@ -357,3 +357,8 @@ For better interraction with the app, I have added to app.blade.php two modals, 
     });
 </script>
 ```
+The modals are displayed in the browser like this: 
+
+![Alt Image](public/photos/message_error.png)
+![Alt Image](public/photos/message_success.png)
+
