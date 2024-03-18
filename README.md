@@ -357,8 +357,482 @@ For better interraction with the app, I have added to app.blade.php two modals, 
     });
 </script>
 ```
+
 The modals are displayed in the browser like this: 
 
 ![Alt Image](public/photos/message_error.png)
 ![Alt Image](public/photos/message_success.png)
 
+### Database and CRUD opperations
+
+Considering that Laravel comes with built-in support for MySQL, and given that MySQL is a scalable database suitable for both smaller and larger projects, I have opted for it as the database solution for this project.
+
+#### Database tables
+
+Besides the tables added by Laravel's Auth feature, I have added several tables for this application: addresses, carts, comments, favorites, ordered_products, orders, photos, products, reviews.
+
+##### Addresses management
+
+* **Table fields:** id, user_id, city, street, number, info.
+
+The Addresses Controller is responsible for creating, displaying, updating and deleting a user's addresses. The user has the ability to add as many addresses as they want.
+
+1. **store(Request $request):**
+    - This method handles the creation of a new address for the logged in user.
+    - It first validates the incoming request data, ensuring that the 'city', 'street', and 'number' fields are required and meet certain criteria, additional information is not required.
+    - If the validation passes, it associates the new address with the authenticated user and returns a success message. If an error occurs during the process, it returns an error message.
+  
+   ```php
+    public function store(Request $request)
+    {
+        try {
+            $validatedData = $request->validate([
+                'city' => ['required', 'string', 'max:50'],
+                'street' => ['required', 'string', 'max:100'],
+                'number' => ['required', 'numeric', 'min:0'],
+                'info' => ['nullable', 'string', 'max:300'],
+            ]);
+
+            auth()->user()->addresses()->create($validatedData);
+            return back()->with('success', 'Address added successfully.');
+        } catch (\Exception $ex) {
+            return back()->with('error', $ex->getMessage());
+        }
+    }
+   ```
+
+2. **show(User $user):**
+    - This method retrieves and displays the addresses belonging to the authenticated user.
+    - The addresses are displayed on the user's own page.
+    - It takes a User model instance as a parameter and retrieves the addresses related to that user.
+    - It then returns a view with the retrieved addresses. If an error occurs, it returns an error message.
+![Img Alt](public/photos/account_page.png)
+```php
+    public function show(User $user)
+    {
+        try {
+            $addresses = $user->addresses()->get();
+            return view('address.show', compact('addresses'));
+        } catch (\Exception $ex) {
+            return back()->with('error', $ex->getMessage());
+        }
+    }
+```
+3. **edit($address):**
+    - This method handles the presentation of a form for editing an existing address.
+    - It retrieves the authenticated user and finds the address based on the provided address ID.
+    - It returns a view with the user, address, and counts of favorites and items in the cart. If an error occurs, it returns an error message.
+
+![Img Alt](public/photos/edit_address.png)
+```php
+    public function edit($address)
+    {
+        try {
+            $user = auth()->user();
+            $address = Address::findOrFail($address);
+            $favoritesCount = (new FavoritesController())->count();
+            $cartCount = (new CartController())->count();
+            return view('address.edit', [
+                'user' => $user,
+                'address' => $address,
+                'favoritesCount' => $favoritesCount,
+                'cartCount' => $cartCount
+            ]);
+        } catch (\Exception $ex) {
+            return back()->with('error', $ex->getMessage());
+        }
+    }
+```   
+4. **update(Request $request, $address):**
+    - This method updates an existing address based on the provided address ID.
+    - It first finds the address to update, then validates the incoming request data.
+    - If the validation passes, it updates the address with the new data and returns a success message. If an error occurs, it returns an error message.
+
+```php
+    public function update(Request $request, $address)
+    {
+        try {
+            $address = Address::findOrFail($address);
+            $validData = $request->validate([
+                'city' => ['nullable', 'string', 'max:50'],
+                'number' => ['nullable', 'numeric', 'min:1'],
+                'street' => ['nullable', 'string', 'max:400'],
+                'info' => ['nullable', 'string', 'max:400'],
+            ]);
+            $address->update($validData);
+            return back()->with('success', 'Address updated successfully!');
+        } catch (\Exception $ex) {
+            return back()->with('error', $ex->getMessage());
+        }
+    }
+```
+5. **delete($address):**
+   - This method deletes an existing address based on the provided address ID.
+    - It finds the address to delete and deletes it from the database.
+    - If the deletion is successful, it returns a success message. If an error occurs, it returns an error message.
+   ```php
+     public function delete($address)
+    {
+        try {
+            $address = Address::findOrFail($address);
+            $address->delete();
+            return back()->with('success', 'Address deleted successfully!');
+        } catch (\Exception $ex) {
+            return back()->with('error', $ex->getMessage());
+        }
+    }
+   ```
+
+##### Shopping Cart management
+
+**Table fields:**  id, user_id, product_id, quantity.
+
+The Cart Controller is responsible for creating a shopping cart for the logged in user by adding products to it. The user, then, has the ability to remove products, increase or decrease their quanitities.
+
+1. **index():**
+   - This method retrieves and displays the user's shopping cart contents.
+    - It fetches the authenticated user's products that they added to the shopping cart.
+    - Retrieves product IDs from the cart associated with the user and fetches corresponding product details.
+    - Calculates the total price of the items in the cart.
+    - Returns a view with user details, cart contents, total price, and counts of favorites and items in the cart. If an error occurs, it returns an error message.
+
+![Img Alt](public/photos/cart_page.png)
+```php
+  public function index()
+    {
+        try {
+            $user = Auth::user();
+            $favoritesCount = (new FavoritesController())->count();
+            $cartCount = (new CartController())->count();
+
+            $productIds = Cart::where("user_id", $user->id)->pluck("product_id")->toArray();
+            $products = [];
+            $cartTotal = (new CartController())->getTotalPrice($productIds);
+            foreach ($productIds as $id) {
+                $product = Product::find($id);
+                $quantity = (new CartController())->getQuantity($id);
+                $photo = Photo::where('uuid', $product->uuid)->first();
+                $product->photo_url = $photo->url;
+                $product->quantity = $quantity;
+                $product->totalPrice = $product->quantity * $product->price;
+                $products[] = $product;
+            }
+            return view("cart.index", [
+                "user" => $user,
+                "favoritesCount" => $favoritesCount,
+                'cartCount' => $cartCount,
+                'products' => $products,
+                'cartTotal' => $cartTotal
+            ]);
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+```
+
+2. **store($productId)**:
+    - This method adds a product to the user's shopping cart, by adding an instance of this product to the database.
+    - It checks if the user is authenticated, creates a new entry in the cart table associating the user with the product and a quantity of 1.
+    - Returns a success message if the addition is successful, otherwise returns an error message.
+```php
+    public function store($productId)
+    {
+        try {
+            $userId = Auth::user()->id;
+            if (!$userId) {
+                return redirect()->to("/login");
+            }
+            Cart::create([
+                'user_id' => $userId,
+                'product_id' => $productId,
+                'quantity' => 1,
+            ]);
+            return back()->with('success', 'Product added to the cart successfully.');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+```
+
+3. **increment($productId)/decrement($productId):**
+    - This method increases/decresease the quantity of a product in the cart by one.
+    - It calls the incrementQuantity()/decrementQuantity method, that cannot be called outside this class, to handle the increment/decrement operation.
+  
+```php
+    public function increment($productId)
+    {
+        try {
+            return $this->incrementQuantity($productId);
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+    private function incrementQuantity($productId)
+    {
+        try {
+            $user = Auth::user();
+            $product = Cart::where('product_id', $productId)->where('user_id', $user->id)->first();
+            if (!$product) {
+                return back()->with('error', 'Product not found in cart.');
+            }
+            $product->quantity += 1;
+            $product->save();
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+    public function decrement($productId)
+    {
+        try {
+            return $this->decrementQuantity($productId);
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+    private function decrementQuantity($productId)
+    {
+        try {
+            $user = Auth::user();
+            $product = Cart::where('product_id', $productId)->where('user_id', $user->id)->first();
+            if (!$product) {
+                return back()->with('error', 'Product not found in cart.');
+            }
+            if ($product->quantity == 1) {
+                return back();
+            }
+            $product->quantity -= 1;
+            $product->save();
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+```
+
+4. **remove($product_id):**
+    - This method removes a product from the user's shopping cart.
+    - It deletes the corresponding entry from the cart table.
+    - Returns a success message upon successful removal or an error message in case of an insuccessful removal.
+  
+   ```php
+          public function remove($product_id)
+    {
+        try {
+            $user_id = Auth::user()->id;
+
+            Cart::where('user_id', $user_id)
+                ->where('product_id', $product_id)
+                ->delete();
+            return back()->with('success', 'Product eliminated from the wishlist');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+   ```
+
+5. **count():**
+    - This method returns the count of items in the user's shopping cart.
+    - It calls the private method cartCount() to handle the count operation.
+      
+```php
+    public function count()
+    {
+        try {
+            return $this->cartCount();
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+    private function cartCount()
+    {
+        try {
+            $user = Auth::user();
+            $cartCount = Cart::where("user_id", $user->id)->count();
+            return $cartCount;
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+```
+
+6. **getQuantity(productId):**
+    - This method retrieves the quantity of a specific product in the user's cart.
+    - It calls the private method productQuantity() to handle the retrieval.
+```php
+    public function getQuantity($productId)
+    {
+        try {
+            return $this->productQuantity($productId);
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
+    private function productQuantity($productId)
+    {
+        try {
+            $user = Auth::user();
+            $product = Product::findOrFail($productId);
+            $quantity = Cart::where("user_id", $user->id)
+                ->where("product_id", $product->id)
+                ->value("quantity");
+            return $quantity ?? 0;
+        } catch (\Exception $e) {
+            \Log::error('Error in getQuantity function: ' . $e->getMessage());
+            return back()->with("error", $e->getMessage());
+        }
+    }
+```
+
+7. **getTotalPrice(array $productIds):**
+    - This method calculates the total price of all products in the user's cart.
+    - It calls the private metho totalPrice() to return the total price.
+    - 
+```php
+    public function getTotalPrice(array $productIds)
+    {
+        try {
+            return $this->totalPrice($productIds);
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
+    private function totalPrice(array $productIds)
+    {
+        try {
+            $cartTotal = 0;
+            foreach ($productIds as $productId) {
+                $product = Product::find($productId);
+                if (!$product) {
+                    continue;
+                }
+                $productQuantity = (new CartController)->getQuantity($product->id);
+                $cartTotal += $product->price * $productQuantity;
+            }
+            return $cartTotal;
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+```
+
+8. **isInCart($productId):**
+    - This method checks if a product is already in the user's shopping cart by calling the private method inCart($productId).
+    - It returns a boolean indicating whether the product is in the cart or not.
+    - It is used in the ProductController. Thanks to this method, each product, when fetched, gets a new field, a boolean called 'cart' that determines what methods are used when the user interacts with the application. If the product is in the shopping cart, all buttons "Add to Cart" will be disabled on the frontend.
+
+```php
+ public function isInCart($productId)
+    {
+        try {
+            return $this->inCart($productId);
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+    private function inCart($productId)
+    {
+        try {
+            $userId = auth()->user()->id;
+            if (!$userId) {
+                return redirect()->to('/login');
+            }
+            $product = Cart::where('product_id', $productId)->where('user_id', $userId)
+                ->exists();
+            return $product;
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+```
+
+##### Comments management
+
+**Table fields:** user_id, product_id, review_id, content 
+
+The Comments Controller is responsible for adding, removing and updating comments to the database. The user can comment under a review. They can edit and remove only their own comments. The user can add as many comment as they want.
+
+1. **store(Request $request, $productId, $reviewId):**
+    - This method handles the creation of a new comment.
+    - It takes two parents: the id of the review the user wants to respond to and the id of the product the review belongs to. This way, the comment will be displayed on the correct page, under the correct review and, if the product will ever be deleted, the comment will also be deleted.
+    - It first checks if the user is authenticated. If not, it returns an error message.
+    - It then checks if both the product and the review exist. If either is not found, it returns an error message.
+    - It validates the content of the comment.
+    - If validation passes, it creates a new comment associated with the user, product, and review.
+    - It returns a success message upon successful creation, or an error message if an exception occurs.
+
+![Comment](public/photos/comment.png)
+```php
+  public function store(Request $request, $productId, $reviewId)
+    {
+        try {
+            $user = auth()->user();
+            if (!$user) {
+                return back()->with("error", "User Not Found.");
+            }
+
+            // Checking if the product and the review do exist
+            $product = Product::find($productId);
+            $review = Reviews::find($reviewId);
+            if (!$product || !$review) {
+                return back()->with("error", "Product or Review Not Found.");
+            }
+
+            $request->validate([
+                "content" => ['nullable', 'string', 'max:500'],
+            ]);
+
+            Comments::create([
+                'content' => $request->content,
+                'user_id' => $user->id,
+                'product_id' => $productId,
+                'review_id' => $reviewId,
+            ]);
+            return back()->with('success', 'Comment submitted successfully.');
+        } catch (\Exception $ex) {
+            return back()->with('error', $ex->getMessage());
+        }
+    }
+```
+
+2. **update(Request $request, Comments $comment):**
+    - This method handles the updating of an existing comment.
+    - It checks if the comment exists. If not, it returns an error message.
+    - If the content of the request is not null, it updates the content of the comment.
+    - It saves the updated comment and returns a success message upon successful update, or an error message if an exception occurs.
+![Edit Comment](public/photos/edit_comment.png)
+```php
+ public function update(Request $request, Comments $comment)
+    {
+        try {
+            if (!$comment) {
+                return back()->with("error", "Comment not found.");
+            }
+            if ($request['content'] !== null) {
+                $comment->content = $request['content'];
+            }
+            $comment->save();
+            return back()->with('success', 'Comment edited successfully!');
+        } catch (\Exception $ex) {
+            return back()->with('error', $ex->getMessage());
+        }
+    }
+```
+
+3. **delete($comment):**
+    - This method handles the deletion of an existing comment.
+    - It attempts to find the comment based on the provided comment ID. If not found, it throws a ModelNotFoundException.
+    - If the comment is found, it deletes the comment.
+    - It returns a success message upon successful deletion, or an error message if the comment is not found.
+```php
+  public function delete($comment)
+    {
+        try {
+            $comment = Comments::findOrFail($comment);
+            $comment->delete();
+            return back()->with('success', 'Comment deleted successfully!');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Comment not found.');
+        }
+    }
+```
