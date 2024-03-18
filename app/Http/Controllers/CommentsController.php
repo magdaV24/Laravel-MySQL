@@ -62,7 +62,7 @@ class CommentsController extends Controller
             $comment = Comments::findOrFail($comment);
             $comment->delete();
             return back()->with('success', 'Comment deleted successfully!');
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        } catch (\Exception $e) {
             return back()->with('error', 'Comment not found.');
         }
     }
