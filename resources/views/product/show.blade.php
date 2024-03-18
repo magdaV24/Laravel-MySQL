@@ -1,5 +1,8 @@
 <div>
-    <h1>All Products</h1>
+<h1>All Products</h1>
+@if ($products->isEmpty())
+        <p>No products found.</p>
+    @else
     <div class='row row-cols-1 row-cols-md-2 row-cols-lg-4 g-2'>
         @foreach ($products as $product)
         <div class="card h-100" style="width: 20rem; margin-right: 0.5rem">
@@ -54,4 +57,5 @@
         </div>
         @endforeach
     </div>
+    @endif
 </div>

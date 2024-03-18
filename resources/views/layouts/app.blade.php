@@ -70,7 +70,7 @@
                                                      document.getElementById('logout-form').submit();">
                                     {{ __('Logout') }}
                                 </a>
-                                <a class="dropdown-item" href="{{ route('account.home', ['user'=> $user->id])}}">
+                                <a class="dropdown-item" href="{{ route('account.home', ['user' => $user->id])}}">
                                     Dashboard
                                 </a>
                                 @if(Auth::user()->role === 'admin')
@@ -87,14 +87,14 @@
                         <li class="mx-2 text-danger">
                             <a class="d-flex flex-row gap-1"
                                 style="color: #134485; font-size: 1.2rem; text-decorations:none"
-                                href="{{ route('cart.index', ['user'=> $user->id])}}">
+                                href="{{ route('cart.index', ['user' => $user->id])}}">
                                 <i class="bi bi-cart"></i> Shopping Cart {{ $cartCount}}
                             </a>
                         </li>
                         <li class="mx-2 text-danger">
                             <a class="d-flex flex-row gap-1"
                                 style="color: #9F060F; font-size: 1.2rem; text-decorations:none"
-                                href="{{ route('favorites.index', ['user'=> $user->id])}}">
+                                href="{{ route('favorites.index', ['user' => $user->id])}}">
                                 <i class="bi bi-bag-heart-fill"></i> Favorites {{ $favoritesCount }}
                             </a>
                         </li>
@@ -109,8 +109,9 @@
         </main>
     </div>
 
-        <!-- Error Modal -->
+ <!-- Error Modal -->
 <div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+    <!-- "aria-hidden=true" means that the modals are initially hidden, to be displayed whenever they need to be -->
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header bg-danger text-white">
@@ -146,7 +147,7 @@
 @if(session('success'))
 <input type="hidden" id="successFlag" value="true">
 @endif
-    @if(session('error'))
+@if(session('error'))
 <input type="hidden" id="errorFlag" value="true">
 @endif
 

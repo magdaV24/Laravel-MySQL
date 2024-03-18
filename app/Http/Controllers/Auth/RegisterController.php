@@ -56,27 +56,28 @@ class RegisterController extends Controller
     protected function create(array $data)
     {
 
+        // Checking if the user provided a file for the avatar field;
         if (isset($data['avatar'])) {
             // Upload the avatar to Cloudinary
             $uploadedFile = $data['avatar']->getRealPath();
             $uploadResult = Cloudinary::upload($uploadedFile);
 
-            // Extract the public ID from the upload result
+            // Extract the public ID from the upload result;
             $publicId = $uploadResult->getPublicId();
         } else {
-            // If the user does not upload an avatar, they will get a default one;
+            // If the user does not want to upload an avatar, they will have a default one assigned;
             $defaultAvatar = 'uz8dp4kowe3riee7gbmf';
             $publicId = $defaultAvatar;
         }
 
-        $role = 'user';
+        $role = 'user'; // Gives the new user the role of "user";
 
        return User::create([
             'name' => $data['name'],
             'email' => $data['email'],
             'avatar' => $publicId,
             'role' => $role,
-            'password' => Hash::make($data['password']),
+            'password' => Hash::make($data['password']), // The password is stored in a hashed form;
         ]);
 
     }
