@@ -206,9 +206,9 @@ class CartController extends Controller
             if (!$userId) {
                 return redirect()->to('/login');
             }
-            $favorite = Cart::where('product_id', $productId)->where('user_id', $userId)
+            $product = Cart::where('product_id', $productId)->where('user_id', $userId)
                 ->exists();
-            return $favorite;
+            return $product;
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());
         }
