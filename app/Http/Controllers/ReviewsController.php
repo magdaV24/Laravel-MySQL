@@ -35,11 +35,11 @@ class ReviewsController extends Controller
             ]);
             return back()->with('success', 'Review added successfully.');
         } catch (\Exception $e) {
-            return back()->with('error','Error while trying to add te review: '.$e->getMessage());
+            return back()->with('error', 'Error while trying to add te review: ' . $e->getMessage());
         }
     }
-
-    public function fetchReviewComments($reviewId){
+    public function fetchReviewComments($reviewId)
+    {
         try {
             return $this->getComments($reviewId);
         } catch (\Exception $e) {
@@ -63,14 +63,14 @@ class ReviewsController extends Controller
             return back()->with("error", $e->getMessage());
         }
     }
-public function checkIsVerified($reviewId)
-{
-    try {
-        return $this->isVerified($reviewId);
-    } catch (\Exception $e) {
-        return back()->with("error", $e->getMessage());
+    public function checkIsVerified($reviewId)
+    {
+        try {
+            return $this->isVerified($reviewId);
+        } catch (\Exception $e) {
+            return back()->with("error", $e->getMessage());
+        }
     }
-}
     private function isVerified($reviewId)
     {
         try {
