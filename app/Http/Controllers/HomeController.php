@@ -12,7 +12,7 @@ class HomeController extends Controller
 {
     /**
      * Create a new controller instance.
-     *
+     * applies the 'auth' middleware to all methods in the controller, ensuring that only authenticated users can access them
      * @return void
      */
     public function __construct()
