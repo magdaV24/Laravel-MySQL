@@ -59,6 +59,17 @@
                         </div>
 
                         <div class="row mb-3">
+                            <label for="new_phone_number" class="col-md-4 col-form-label text-md-end">New Phone Number</label>
+
+                            <div class="col-md-6">
+                                <input id="new_phone-number" type="string"
+                                pattern="0[0-9]{9}"
+                                    class="form-control @error('phone-number') is-invalid @enderror" name="phone-number"
+                                    placeholder={{$user->phone-number}}>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
                             <label for="new_password" class="col-md-4 col-form-label text-md-end">New Password</label>
 
                             <div class="col-md-6">

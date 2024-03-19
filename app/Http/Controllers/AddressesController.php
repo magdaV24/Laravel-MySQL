@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Orders;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -77,6 +78,11 @@ class AddressesController extends Controller
     {
         try {
             $address = Address::findOrFail($address);
+            $id = $address->id;
+            $order = Orders::where("address_id", $id)->first();
+            if($order->exists() && $order->status !== "Delivered"){
+                return back()->with('error', "This address is associated to an on-going delivery!");
+            }
             $address->delete();
             return back()->with('success', 'Address deleted successfully!');
         } catch (\Exception $ex) {

@@ -10,20 +10,21 @@
                 <h6>Order ID: {{$order->id}}</h3>
             </div>
             <div class="card-body d-flex justify-content-between p-3 ap-3">
-                <div>
+                <div style="display: flex; flex-direction: column; justify-content: center; align-items: center;">
                     @php
                     $count=1;
                     @endphp
 
                     @foreach($order->products as $product)
-                    <div class="d-flex gap-2 p-2 justify-content-between align-items-center">
-                        <div>{{$count}}</div>
-                        <div>
+                    <div class="d-flex gap-2 p-2 justify-content-between align-items-center" style="border-bottom: 1px solid #AFAEAF; width: 100%">
+                        <div style="width: 10%">{{$count}}</div>
+                        <div style="width: 30%">
                             @include('components.cld-img', ['public_id'=>$product->photos[0], 'width'=>50,
                             'height'=>75])
                         </div>
-                        <div>
-                            {{$product->name}} X {{$product->quantity}}
+                        <div style="width: 60%; display: flex; flex-direction: column; align-items: flex-start; margin-left: 5px">
+                            <div>{{$product->name}}</div>
+                            <div>Q: {{$product->quantity}}</div>
                         </div>
 
                     </div>

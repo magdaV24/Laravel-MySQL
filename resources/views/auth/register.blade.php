@@ -26,7 +26,7 @@
 
                             <div class="col-md-6">
                                 <input id="name" type="text" class="form-control @error('name') is-invalid @enderror"
-                                    name="name" value="{{ old('name') }}" required autocomplete="name" autofocus>
+                                    name="name" required autofocus>
                             </div>
                         </div>
 
@@ -36,7 +36,17 @@
 
                             <div class="col-md-6">
                                 <input id="email" type="email" class="form-control @error('email') is-invalid @enderror"
-                                    name="email" value="{{ old('email') }}" required autocomplete="email">
+                                    name="email"  required >
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <label for="phone-number" class="col-md-4 col-form-label text-md-end">{{ __('Phone Number')
+                                }}</label>
+
+                            <div class="col-md-6">
+                                <input id="phone-number" type="text" class="form-control @error('phone-number') is-invalid @enderror"
+                                    name="phone-number" pattern="0[0-9]{9}" required>
                             </div>
                         </div>
 
@@ -47,7 +57,7 @@
                             <div class="col-md-6">
                                 <input id="password" type="password"
                                     class="form-control @error('password') is-invalid @enderror" name="password"
-                                    required autocomplete="new-password">
+                                    required >
                             </div>
                         </div>
 
@@ -57,7 +67,7 @@
 
                             <div class="col-md-6">
                                 <input id="password-confirm" type="password" class="form-control"
-                                    name="password_confirmation" required autocomplete="new-password">
+                                    name="password_confirmation" required>
                             </div>
                         </div>
                         <div class="row mb-3">

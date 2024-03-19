@@ -91,6 +91,9 @@ class AccountController extends Controller
                 if ($request['email'] !== null) {
                     $user->email = $request['email'];
                 }
+                if ($request['phone-number'] !== null) {
+                    $user->email = $request['phone-number'];
+                }
                 $user->save();
                 return back()->with("success", "Profile updated successfully!");
             } else {

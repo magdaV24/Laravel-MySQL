@@ -42,6 +42,7 @@ class RegisterController extends Controller
             'name' => ['required', 'string', 'max:100'],
             'email' => ['required', 'string', 'email', 'max:100', 'unique:users'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'phone-number' => ['required', 'regex:/^0[0-9]{9}$/'],
             'role' => ['string', 'in:user,admin'],
             'avatar' => ['nullable', 'file', 'image', 'max:2048'],
         ]);
@@ -77,6 +78,7 @@ class RegisterController extends Controller
             'email' => $data['email'],
             'avatar' => $publicId,
             'role' => $role,
+            'phone-number' => $data['phone-number'],
             'password' => Hash::make($data['password']), // The password is stored in a hashed form;
         ]);
 
