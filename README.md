@@ -360,8 +360,8 @@ For better interraction with the app, I have added to app.blade.php two modals, 
 
 The modals are displayed in the browser like this: 
 
-![Alt Image](public/photos/message_error.png)
-![Alt Image](public/photos/message_success.png)
+![Error Alert](public/photos/message_error.png)
+![Success Alert](public/photos/message_success.png)
 
 ### Database and CRUD opperations
 
@@ -371,7 +371,17 @@ Considering that Laravel comes with built-in support for MySQL, and given that M
 
 Besides the tables added by Laravel's Auth feature, I have added several tables for this application: addresses, carts, comments, favorites, ordered_products, orders, photos, products, reviews.
 
-##### Addresses management
+### Table of contents
+- [Addresses Management](#addresses-management)
+- [Shopping Cart Management](#shopping-cart-management)
+- [Comments Management](#comments-management)
+- [Wishlist Management](#wishlist-management)
+- [Orders Management](#orders-management)
+- [Photos Management](#photos-management)
+- [Products Management](#products-management)
+- [Reviews Management](#reviews-management)
+  
+### Addresses Management
 
 * **Table fields:** id, user_id, city, street, number, info.
 
@@ -467,14 +477,20 @@ The Addresses Controller is responsible for creating, displaying, updating and d
     }
 ```
 5. **delete($address):**
-   - This method deletes an existing address based on the provided address ID.
+    - This method deletes an existing address based on the provided address ID.
     - It finds the address to delete and deletes it from the database.
+    - The deletion only takes place if the address is not assigned to an order that is pending or in transit. If the address is not used during an on-going delivery or is not used at all, it will be deleted.
     - If the deletion is successful, it returns a success message. If an error occurs, it returns an error message.
    ```php
      public function delete($address)
     {
         try {
             $address = Address::findOrFail($address);
+            $id = $address->id;
+            $order = Orders::where("address_id", $id)->first();
+            if($order->exists() && $order->status !== "Delivered"){
+                return back()->with('error', "This address is associated to an on-going delivery!");
+            }
             $address->delete();
             return back()->with('success', 'Address deleted successfully!');
         } catch (\Exception $ex) {
@@ -483,7 +499,7 @@ The Addresses Controller is responsible for creating, displaying, updating and d
     }
    ```
 
-##### Shopping Cart management
+### Shopping Cart Management
 
 **Table fields:**  id, user_id, product_id, quantity.
 
@@ -496,7 +512,7 @@ The Cart Controller is responsible for creating a shopping cart for the logged i
     - Calculates the total price of the items in the cart.
     - Returns a view with user details, cart contents, total price, and counts of favorites and items in the cart. If an error occurs, it returns an error message.
 
-![Img Alt](public/photos/cart_page.png)
+![Cart Page](public/photos/cart_page.png)
 ```php
   public function index()
     {
@@ -612,7 +628,7 @@ The Cart Controller is responsible for creating a shopping cart for the logged i
     - This method removes a product from the user's shopping cart.
     - It deletes the corresponding entry from the cart table.
     - Returns a success message upon successful removal or an error message in case of an insuccessful removal.
-  
+    - Once an order is placed, all products from the cart are removed.
    ```php
           public function remove($product_id)
     {
@@ -632,6 +648,7 @@ The Cart Controller is responsible for creating a shopping cart for the logged i
 5. **count():**
     - This method returns the count of items in the user's shopping cart.
     - It calls the private method cartCount() to handle the count operation.
+    - The result is displayed in the application bar.
       
 ```php
     public function count()
@@ -746,7 +763,7 @@ The Cart Controller is responsible for creating a shopping cart for the logged i
     }
 ```
 
-##### Comments management
+### Comments Management
 
 **Table fields:** user_id, product_id, review_id, content 
 
@@ -836,3 +853,726 @@ The Comments Controller is responsible for adding, removing and updating comment
         }
     }
 ```
+
+### Wishlist Management
+
+**Table fields:** id, user_id, product_id
+
+The Favrites Controller is responsible for ensuring that the user has a wishlist. The user can add or remove products from their wishlist. When the products are displayed, controller also checks if the logged in user has the product in the wishlist and that ensures the user gets the functionality needed.
+
+1. **index():**
+    - This method retrieves and displays the user's favorite products, and thus, creating the wihlist page.
+    - It first checks if the user is authenticated. If not, it redirects to the login page.
+    - It retrieves the IDs of the products favorited by the user and fetches corresponding product details.
+    - It constructs an array of products with their photo URLs, so that the product card has a thumbnail.
+    - Finally, it returns a view with user details, favorite products, and counts of favorites and items in the cart. If an error occurs, it returns an error message.
+![Wishlist](public/photos/wishlist.png)
+```php
+ public function index()
+    {
+        try {
+            $user = Auth::user();
+            if (!$user) {
+                return redirect()->to("/login");
+            }
+            $productId = Favorites::where("user_id", $user->id)->pluck("product_id")->toArray();
+            $products = [];
+            foreach ($productId as $id) {
+                $product = Product::find($id);
+                $photo = Photo::where('uuid', $product->uuid)->first();
+                $product->photo_url = $photo->url;
+                $products[] = $product;
+            }
+            $favoritesCount = (new FavoritesController())->count();
+            $cartCount = (new CartController())->count();
+            return view("favorites.index", [
+                "user" => $user,
+                "products" => $products,
+                'favoritesCount' => $favoritesCount,
+                'cartCount' => $cartCount
+            ]);
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+```
+
+2. **store($productId):**
+    - This method creates a new instance of a wishlist item.
+    - It checks if the user is authenticated. If not, it redirects to the login page.
+    - It creates a new entry in the favorites table associating the user with the product.
+    - It returns a success message upon successful addition, or an error message if an exception occurs.
+```php
+public function store($productId)
+    {
+        try {
+            $userId = Auth::user()->id;
+            if (!$userId) {
+                return redirect()->to("/login");
+            }
+            Favorites::create([
+                'user_id' => $userId,
+                'product_id' => $productId,
+            ]);
+            return back()->with('success', 'Product added to the wishlist successfully.');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+    }
+```
+3. **remove():**
+    - This method removes a product from the user's wishlist.
+    - It deletes the corresponding entry from the favorites table.
+    - Returns a success message upon successful removal.
+    - This method can only be accessed when the product is already in the wishlist.
+```php
+ public function remove($product_id)
+    {
+        try {
+            $user_id = Auth::user()->id;
+
+            Favorites::where('user_id', $user_id)
+                ->where('product_id', $product_id)
+                ->delete();
+            return back()->with('success', 'Product eliminated from the wishlist');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+```
+4. **isInWishlist($productId):**
+   -  This method checks if a product is already in the user's favorites.
+    - It returns a boolean indicating whether the product is in the favorites or not.
+
+```php
+public function isInWishlist($productId)
+    {
+        try {
+            return $this->inWishlist($productId);
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+    private function inWishlist($productId)
+    {
+        try {
+            $userId = auth()->user()->id;
+            if (!$userId) {
+                return redirect()->to('/login');
+            }
+            $favorite = Favorites::where('product_id', $productId)->where('user_id', $userId)
+                ->exists();
+            return $favorite;
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+```
+
+The buttons that are used to add or remove a product from the user's wishlist, based on whether or not the product was already added.
+
+![Wishlist Buttons](public/photos/wishlist_buttons.png)
+
+5. **count():**
+    - Method that returns the number of products in the logged in user's wishlist.
+    - It calls the private method favoritesCount().
+    - The result is displayed in the application bar.
+      
+   ```php
+       public function count()
+    {
+        try {
+            return $this->favoritesCount();
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+    private function favoritesCount()
+    {
+        try {
+            $userId = Auth::user()->id;
+            $favoritesCount = Favorites::where('user_id', $userId)->count();
+            return $favoritesCount;
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+   ```
+
+### Orders Management
+
+**Table fields:** id, user_id, address_id, status, paying_method, uuid, price
+
+The Orders Controller is responsible for saving each order to the database. Every order is connected to instances in the ordered_products table through an uuid, so that, when a user wants to leave a review, the controller can check if the user bought the product or not. The user can make an order, but only an user with the role of "admin" has the ability to update the order. The orders are listed on a separate page, only available to admins.
+
+1. **store(Request $request):**
+    - This method handles the creation of a new order.
+    - It first retrieves the authenticated user and generates a UUID for the order.
+    - It fetches the product IDs from the user's cart.
+    - For each product, it creates an entry in the ordered_products table, associating the product with the user and the order UUID.
+    - It calculates the total price of the order using the getTotalPrice() method from the CartController.
+    - It creates an entry in the Orders table with details such as user ID, UUID, price, address ID, status, and paying method.
+    - If the order creation is successful, it removes the products from the user's cart and returns a success message. Otherwise, it returns an error message.
+  
+```php
+public function store(Request $request)
+    {
+        try {
+            $user = Auth::user();
+            $uuid = Str::uuid();
+            $productIds = Cart::where("user_id", $user->id)->pluck("product_id")->toArray();
+            foreach ($productIds as $productId) {
+                $product = Cart::where("product_id", $productId)->first();
+                OrderedProducts::create([
+                    "product_id" => $productId,
+                    "user_id" => $user->id,
+                    "uuid" => $uuid,
+                    'quantity' => $product->quantity,
+                ]);
+            }
+            $price = (new CartController)->getTotalPrice($productIds);
+            $order = Orders::create([
+                "user_id" => $user->id,
+                "uuid" => $uuid,
+                'price' => $price,
+                "address_id" => $request['address'],
+                "status" => 'Pending',
+                'paying_method' => $request['paying-method']
+            ]);
+            if (!$order->exists()) {
+                return back()->with("error", "Something went wrong.");
+            }
+            ;
+            foreach ($productIds as $productId) {
+                (new CartController)->remove($productId);
+            }
+            return back()->with("success", "Order placed successfully!");
+        } catch (\Exception $e) {
+            return back()->with("error", $e->getMessage());
+        }
+    }
+```
+
+2. **show():**
+    - This method retrieves and displays all orders on a page only available to an user that has the role of "admin".
+    - It fetches the authenticated user and all orders from the Orders table.
+    - For each order, it retrieves the associated products using the getProducts() method.
+    - It also retrieves the associated address for each order.
+    - Finally, it returns a view with user details, orders, counts of favorites and items in the cart.
+  
+```php
+public function show()
+    {
+        try {
+            $user = auth()->user();
+            $orders = Orders::all();
+            $favoritesCount = (new FavoritesController)->count();
+            $cartCount = (new CartController)->count();
+            foreach ($orders as $order) {
+                $order->products = (new OrdersController)->getProducts($order->id);
+                $order->phoneNumber = User::where('id', $order->user_id)->pluck('phone-number')->first();
+                $order->name = User::where('id', $order->user_id)->pluck('name')->first();
+                $order->email = User::where('id', $order->user_id)->pluck('email')->first();
+                $address = Address::where("id", $order->address_id)->first();
+                if($address)
+                {
+                    $order->address = $address;
+                }
+            }
+            return view("orders.show", [
+                "orders" => $orders,
+                "favoritesCount" => $favoritesCount,
+                "cartCount" => $cartCount,
+                'user' => $user
+            ]);
+        } catch (\Exception $ex) {
+            return back()->with('error', $ex->getMessage());
+        }
+    }
+```
+![Orders Page](public/photos/orders.png)
+
+3. **update(Orders $order):**
+   - This method updates the status of an existing order.
+    - It first checks if the order exists. If not, it returns an error message.
+    - It updates the status of the order based on its current status.
+    - It saves the updated order and returns a success message upon successful update, or an error message if an exception occurs.
+      
+![Orders Page](public/photos/edit_order.png)
+
+```php
+public function update(Orders $order)
+    {
+        try {
+            $order = Orders::find($order->id);
+            if (!$order) {
+                return back()->with('error', 'Order not found.');
+            }
+            if ($order->status === 'Pending') {
+                $order->status = 'Processing';
+            } else if ($order->status === 'Processing') {
+                $order->status = 'In transit';
+            } else {
+                $order->status = "Delivered";
+            }
+            $order->save();
+            return back()->with("success", "Order updated successfully!");
+        } catch (\Exception $ex) {
+            return back()->with("error", $ex->getMessage());
+        }
+    }
+```
+
+4. **getProducts($orderId):**
+    - This method retrieves the products associated with a specific order.
+    - It fetches the order from the Orders table based on the provided order ID.
+    - It retrieves the product IDs associated with the order from the OrderedProducts table, through the common uuid.
+    - For each product, it fetches the corresponding product details, including photos and quantity.
+    - It returns an array of products associated with the order.
+    - It calls the private method getOrderProducts($orderId).
+
+```php
+    public function getProducts($orderId)
+    {
+        try {
+            return $this->getOrderProducts($orderId);
+        } catch (\Exception $ex) {
+            return back()->with("error", $ex->getMessage());
+        }
+    }
+
+    private function getOrderProducts($orderId)
+    {
+        try {
+            $order = Orders::find($orderId);
+            if (!$order) {
+                return back()->with("error", "Order not found.");
+            }
+            $productIds = OrderedProducts::where("uuid", $order->uuid)->pluck('product_id')->toArray();
+            $products = [];
+            foreach ($productIds as $productId) {
+                $product = Product::find($productId);
+                if ($product) {
+                    $product->photos = Photo::where('uuid', $product->uuid)->pluck('url')->toArray();
+                    $product->quantity = OrderedProducts::where("product_id", $product->id)->value("quantity");
+                    $products[] = $product;
+                }
+            }
+            return $products;
+        } catch (\Exception $ex) {
+            return back()->with("error", $ex->getMessage());
+        }
+    }
+```
+
+### Photos Management
+
+**Table fields:** id, uuid, url
+
+The Photo Controller is responsible for the deletion of the photos associated to a product. The photos are uploaded to Cloudinary and their public id is saved to the database under the field 'url'. In order to display them, I have created a component that I used whenever I needed to display an image. 
+
+```php
+@props(['public_id','width', 'height'])
+
+@php
+$imageUrl = cloudinary()->getImage($public_id)->toUrl();
+@endphp
+
+<img src="{{ $imageUrl }}" alt="Cloudinary Image" width="{{ $width }}" height="{{ $height }}" />
+```
+
+1. **delete($public_id):**
+   - Method that deletes the photo from the photos table from the database, as well as from Cloudinary.
+   - If the photo is not found, it returns an error message.
+   - If the deletion is successful according to the API response, it deletes the photo record from the database and returns a success message.
+   - If the deletion fails, it returns an error message.
+   - If an exception occurs during the process, it returns an error message containing the exception message.
+
+```php
+public function delete($public_id)
+    {
+        try {
+
+            $photo = Photo::where("url", $public_id);
+
+            if (!$photo) {
+                return back()->with("error", "Photo not found.");
+            }
+
+            $result = (new AdminApi())->deleteAssets(
+                $public_id,
+                ["resource_type" => "image", "type" => "upload"]
+            );
+
+            if ($result) {
+                $photo->delete();
+                return back()->with('success', 'Photo deleted successfully.');
+            } else {
+                return back()->with('error', 'Could not delete the photo.');
+            }
+        } catch (\Exception $ex) {
+            return back()->with('error', $ex->getMessage());
+        }
+    }
+```
+
+### Products Management
+
+**Table fields:** id, uuid, name, price, description
+
+The Products Controller is responsible for the management of the store's products. An user with the role of 'admin' has the ability to add a product to the database through a form that asks for the name, price, description of the product. The admin can also add multiple photos. Each photo will be saved to a Cloudinary collection and it's public_id will be saved to the photos table in the MySQL database. The product and the photos associated to it are linked through an uuid. The administartor can edit the product, which means they can delete existing photos or add new ones, change the name, price or description of the product. The admin also has the ability to delete the product.
+
+1. **store(Request $request):**
+    - This method handles the creation of a new product.
+    - It generates a UUID for the product that will create a link between the product and it's photos.
+    - It validates the incoming request data, including name, price, description, and photos.
+    - If photos are uploaded, it uploads them to Cloudinary and stores the public IDs in the photos table from the database along with the UUID.
+    - If no photos are uploaded, it assigns a default photo URL.
+    - It creates a new product record in the database with the validated data and the generated UUID.
+    - Upon successful creation, it returns a success message. If an exception occurs during the process, it returns an error message.
+
+![Add Product](public/photos/add_product.png)
+```php
+    public function store(Request $request)
+    {
+        try {
+            $uuid = Str::uuid();
+            $request->validate([
+                'name' => ['required', 'string', 'max:50'],
+                'price' => ['required', 'numeric', 'min:0'],
+                'description' => ['required', 'string', 'max:400'],
+                'photos.*' => ['nullable', 'image', 'max:2048'],
+                'uuid' => ['nullable', 'string'],
+            ]);
+
+            if ($request->hasFile('photos')) {
+                foreach ($request->file('photos') as $photo) {
+                    $uploadedFile = $photo->getRealPath();
+                    $uploadResult = Cloudinary::upload($uploadedFile);
+
+                    $publicId = $uploadResult->getPublicId();
+
+                    Photo::create([
+                        'url' => $publicId,
+                        'uuid' => $uuid,
+                    ]);
+                }
+            } else {
+                // If the admin does not upload any photos, this one will be assigned;
+                $defaultUrl = 'pexels-pixabay-268349_onacrr';
+                Photo::create([
+                    'url' => $defaultUrl,
+                    'uuid' => $uuid,
+                ]);
+            }
+
+            Product::create([
+                'name' => $request['name'],
+                'price' => $request['price'],
+                'description' => $request['description'],
+                'uuid' => $uuid,
+            ]);
+            return back()->with('success', 'Product added successfully.');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+```
+2. **index($product):**
+    - This method retrieves and displays a specific product.
+    - It fetches the authenticated user and the product based on the provided product ID.
+    - It retrieves photos associated with the product.
+    - It calculates the average grade of the product based on its reviews.
+    - It checks if the product is favorited and if it's in the user's cart.
+    - It returns a view with user details, the product, associated photos, and reviews. This will be translated into the product's page on the frontend.
+
+![Product Page](public/photos/product_page3.png)
+
+```php
+public function index($product)
+    {
+        try {
+            $user = auth()->user();
+            $product = Product::findOrFail($product);
+            $photos = Photo::where('uuid', $product->uuid)->pluck('url');
+            $favoritesCount = (new FavoritesController())->count();
+            $cartCount = (new CartController())->count();
+            $grade = 0;
+
+            // Retrieve the product's reviews;
+            $reviews = Reviews::where('product_id', $product->id)->get();
+            $count = Reviews::where('product_id', $product->id)->count();
+            foreach ($reviews as $review) {
+                $review->comments = (new ReviewsController())->fetchReviewComments($review->id);
+                $review->verified = (new ReviewsController())->checkIsVerified($review->id);
+                $review->avatar = User::where('id', $review->user_id)->value('avatar');
+                $review->name = User::where('id', $review->user_id)->value('name');
+                $grade += $review->grade;
+            }
+            $count === 0 ? $product->grade = 0 : $product->grade = $grade / $count;
+            $product->favorite = (new FavoritesController)->isInWishlist($product->id); /*checks if the product is in the wishlist;
+based on whether or not the product is in the wishlist, the user will get option to remove/add the product from/to the wishlist
+*/
+            $product->cart = (new CartController())->isInCart($product->id); /*checks if the product is in the cart;*/
+            return view('product.index', [
+                'user' => $user,
+                'product' => $product,
+                'photos' => $photos,
+                'favoritesCount' => $favoritesCount,
+                'cartCount' => $cartCount,
+                'reviews' => $reviews
+            ]);
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+```
+
+3. **edit($product):**
+    - This method retrieves and displays the form to edit a specific product.
+    - It fetches the authenticated user and the product based on the provided product ID.
+    - It retrieves photos associated with the product.
+    - It returns a view with the product, user details, associated photos, and counts of favorites and items in the cart.
+  
+![Product Edit](public/photos/product_edit.png)
+
+```php
+public function edit($product)
+    {
+        try {
+            $user = auth()->user();
+            $product = Product::findOrFail($product);
+            $photos = Photo::where('uuid', $product->uuid)->pluck('url');
+            $favoritesCount = (new FavoritesController())->count();
+            $cartCount = (new CartController())->count();
+            return view('product.update', [
+                'product' => $product,
+                'user' => $user,
+                'photos' => $photos,
+                'favoritesCount' => $favoritesCount,
+                'cartCount' => $cartCount
+            ]);
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+```
+4. **update(Request $request, Product $product, $uuid):**
+    - This method handles the updating of an existing product.
+    - It validates the incoming request data, including name, price, description, and photos.
+    - If photos are uploaded, it uploads them to Cloudinary and stores the public IDs in the Photo model along with the UUID.
+    - It updates the product record in the database with the validated data.
+    - Upon successful update, it returns a message of success. If an exception occurs during the process, it returns an error message.
+
+   ```php
+    public function update(Request $request, Product $product, $uuid)
+    {
+
+        try {
+            $validData = $request->validate([
+                'name' => ['required', 'string', 'max:50'],
+                'price' => ['required', 'numeric', 'min:0'],
+                'description' => ['required', 'string', 'max:400'],
+                'photos.*' => ['nullable', 'image', 'max:2048'],
+            ]);
+
+            if ($request->hasFile('photos')) {
+                foreach ($request->file('photos') as $photo) {
+                    $uploadedFile = $photo->getRealPath();
+                    $uploadResult = Cloudinary::upload($uploadedFile);
+
+                    $publicId = $uploadResult->getPublicId();
+
+                    Photo::create([
+                        'url' => $publicId,
+                        'uuid' => $uuid
+                    ]);
+                }
+            }
+            $product->update($validData);
+            return back()->with('success', 'Product edited successfully.');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+   ```
+5. **delete($product):**
+    - This method handles the deletion of a specific product.
+    - It fetches the product based on the provided product ID.
+    - It retrieves associated photos and deletes them from Cloudinary and from the photos table in the database using the delete() method from the PhotoController.
+    - It deletes the product record from the database along with its reviews and comments.
+    - Upon successful deletion, it returns a success message. If an exception occurs during the process, it returns an error message.
+  
+```php
+public function delete($product)
+    {
+        try {
+            $product = Product::findOrFail($product);
+            if (!$product) {
+                return back()->with('error', 'Product not found.');
+            }
+
+            $photos = Photo::where('product_id', $product->id)->get();
+            foreach ($photos as $photo) {
+                (new PhotoController)->delete($photo->url);
+            }
+            $product->delete();
+            $product->reviews()->delete();
+            $product->comments()->delete();
+
+            return back()->with('success', 'Product deleted successfully!');
+        } catch (\Exception $ex) {
+            return back()->with('error', $ex->getMessage());
+        }
+    }
+```
+
+### Reviews Management
+
+**Table fields:** id, user_id, product_id, content, grade
+
+The Reviews Controller is responsible for the creation, updating, displaying, and deletion of the reviews. An user can leave a single review under each product. In order to give more accuracy to a review, it is checked if the user had bought the product. The user can edit or delete their own review. Each review is retrieved alongside all the responses it got.
+
+1. **store(Request $request, $productId):**
+    - This method handles the creation of a new review for a product.
+    - It retrieves the authenticated user.
+    - It checks if the user exists. If not, it returns an error message.
+    - It checks if the user has already reviewed the product. If yes, it returns an error message.
+    - It validates the incoming request data, including content and grade.
+    - It creates a new review record in the database with the validated data and the provided product ID.
+    - Upon successful creation, it returns a success message. If an exception occurs during the process, it returns an error message.
+![Add Review](public/photos/add_review.png)
+```php
+ public function store(Request $request, $productId)
+    {
+        try {
+            $user = Auth::user();
+            if ($user->exists == false) {
+                return back()->with("error", "User Not Found.");
+            }
+            $check = Reviews::where("user_id", $user->id)->where("product_id", $productId)->exists();
+            if ($check) {
+                return back()->with("error", "You already reviewed this product.");
+            }
+            $request->validate([
+                "content" => ['nullable', 'string', 'max:500'],
+                'grade' => ['required', 'numeric'],
+            ]);
+
+            Reviews::create([
+                'content' => $request->content,
+                'user_id' => $user->id,
+                'product_id' => $productId,
+                'grade' => $request->grade,
+            ]);
+            return back()->with('success', 'Review added successfully.');
+        } catch (\Exception $e) {
+            return back()->with('error','Error while trying to add te review: '.$e->getMessage());
+        }
+    }
+```
+
+2. **fetchReviewComments($reviewId):**
+    - This method retrieves comments associated with a specific review.
+    - It calls for the private method getComments($reviewId) to perform the retrieval.
+    - It retrieves comments based on the provided review ID.
+    - For each comment, it retrieves the associated user's avatar and name.
+    - It returns the retrieved comments. If an exception occurs during the process, it returns an error message.
+
+```php public function fetchReviewComments($reviewId){
+        try {
+            return $this->getComments($reviewId);
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+    private function getComments($reviewId)
+    {
+        try {
+            $comments = Comments::where("review_id", $reviewId)->get();
+            foreach ($comments as $comment) {
+                $user = User::find($comment->user_id);
+                if ($user->exists == false) {
+                    return back()->with("error", "User not found");
+                }
+                $comment->avatar = $user->avatar;
+                $comment->name = $user->name;
+            }
+            return $comments;
+        } catch (\Exception $e) {
+            return back()->with("error", $e->getMessage());
+        }
+    }
+```
+3. **checkIsVerified($reviewId):**
+    - This method checks if a purchase is verified, meaning if the reviewer has bought the product.
+    - It delegates to the private method isVerified($reviewId) to perform the verification.
+    - It retrieves the review based on the provided review ID.
+    - It checks if there exists an ordered product associated with the same user and product ID as the review.
+    - It returns a boolean value indicating whether the purchase is verified. If an exception occurs during the process, it returns an error message.
+
+```php
+public function checkIsVerified($reviewId)
+{
+    try {
+        return $this->isVerified($reviewId);
+    } catch (\Exception $e) {
+        return back()->with("error", $e->getMessage());
+    }
+}
+private function isVerified($reviewId)
+    {
+        try {
+            $review = Reviews::find($reviewId);
+            $verified = OrderedProducts::where("user_id", $review->user_id)->where("product_id", $review->product_id)->exists();
+            return $verified;
+        } catch (\Exception $e) {
+            return back()->with("error", $e->getMessage());
+        }
+    }
+```
+4. **update(Request $request, Reviews $review):**
+    - This method handles the updating of an existing review.
+    - It retrieves the review based on the provided review object.
+    - It updates the review content and grade based on the incoming request data.
+    - Upon successful update, it returns a success message. If an exception occurs during the process, it returns an error message.
+  
+```php
+    public function update(Request $request, Reviews $review)
+    {
+        try {
+            if (!$review) {
+                return back()->with("error", "Review not found.");
+            }
+            $review->content = $request->input('content', $review->content);
+            $review->grade = $request->input('grade', $review->grade);
+
+            $review->save();
+
+            return back()->with('success', 'Review edited successfully!');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+```
+5. **delete($review):**
+    - This method handles the deletion of a specific review.
+    - It fetches the review based on the provided review ID.
+    - It deletes the review record from the database.
+    - Upon successful deletion, it returns a success message. If an exception occurs during the process, it returns an error message.
+  
+```php
+  public function delete($review)
+    {
+        try {
+            $review = Reviews::findOrFail($review);
+            $review->delete();
+            return back()->with('success', 'Review deleted successfully!');
+        } catch (\Exception $ex) {
+            return back()->with('error', 'Error while looking for you review: ' . $ex->getMessage());
+        }
+    }
+```
+
+![Reviews](public/photos/reviews.png)
