@@ -22,7 +22,7 @@
                             @include('components.cld-img', ['public_id'=>$product->photos[0], 'width'=>50,
                             'height'=>75])
                         </div>
-                        <div style="width: 60%; display: flex; flex-direction: column; align-items: flex-start; margin-left: 5px">
+                        <div style="width: 60%; display: flex; flex-direction: column; align-items: flex-start; margin-left: 1rem">
                             <div>{{$product->name}}</div>
                             <div>Q: {{$product->quantity}}</div>
                         </div>
@@ -34,7 +34,7 @@
                     @endforeach
                 </div>
                 @if($order->address)
-                <div class="d-flex flex-column gap-3">
+                <div class="d-flex flex-column gap-3" style="width: 15rem">
                     <h5>
                         Address:
                     </h5>
@@ -48,6 +48,12 @@
                 @else
                 <p>Address was deleted</p>
                 @endif
+                <div>
+                    <h5>Recipient:</h5>
+                    <div>Name: {{$order->name}}</div>
+                    <div>Email: {{$order->email}}</div>
+                    <div>Phone Number: {{$order->phoneNumber}}</div>
+                </div>
                 <div>
                     <h5>Paying Method: </h5>
                     <div>{{$order->paying_method}}</div>

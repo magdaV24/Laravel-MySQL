@@ -7,6 +7,7 @@ use App\Models\Cart;
 use App\Models\Orders;
 use App\Models\Photo;
 use App\Models\Product;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use App\Models\OrderedProducts;
 use Illuminate\Http\Request;
@@ -60,6 +61,9 @@ class OrdersController extends Controller
             $cartCount = (new CartController)->count();
             foreach ($orders as $order) {
                 $order->products = (new OrdersController)->getProducts($order->id);
+                $order->phoneNumber = User::where('id', $order->user_id)->pluck('phone-number')->first();
+                $order->name = User::where('id', $order->user_id)->pluck('name')->first();
+                $order->email = User::where('id', $order->user_id)->pluck('email')->first();
                 $address = Address::where("id", $order->address_id)->first();
                 if($address)
                 {
