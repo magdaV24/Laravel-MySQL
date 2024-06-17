@@ -6,7 +6,7 @@ A Laravel framework project using a MySQL database, including features such as: 
 
 ## Functionality
 
-The application provids features such as user authentication, adding products to the wishlist, adding products to the shopping cart, increasing/decreasing their quantity, placing an order, editing one's profile or writing reviews to a product.
+The application provides features such as user authentication, adding products to the wishlist, adding products to the shopping cart, increasing/decreasing their quantity, placing an order, editing one's profile or writing reviews to a product.
 
 ### Using Laravel's MVC design pattern
 
